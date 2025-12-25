@@ -1,0 +1,9 @@
+
+Client: ABC Traders
+Input File: data/sales_data.csv
+
+Initial Rows: 5
+Duplicates Removed: 1
+Missing Names Removed: 1
+Final Rows: 3
+Success Rate: 60.0%

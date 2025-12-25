@@ -1,0 +1,100 @@
+2025-12-19 21:26:40,564 | INFO | Automation started.
+2025-12-19 21:26:40,581 | INFO | CSV loaded successfully with 5 rows
+2025-12-19 21:26:40,602 | INFO | Duplicates removed: 1
+2025-12-19 21:26:40,602 | INFO | Missing names removed: 1
+2025-12-19 21:26:40,602 | INFO | Final row count: 3
+2025-12-19 21:26:41,513 | INFO | Excel file exported successfully: clean_sales_report.xlsx
+2025-12-19 21:26:41,513 | INFO | Automation finished
+2025-12-19 21:50:53,874 | INFO | Automation started.
+2025-12-19 21:50:53,876 | INFO | Processing started for client: ABC Traders
+2025-12-19 21:50:53,891 | INFO | Automation finished
+2025-12-20 09:30:24,244 | INFO | Automation started.
+2025-12-20 09:30:24,248 | INFO | Processing started for client: ABC Traders
+2025-12-20 09:30:24,266 | INFO | Automation finished
+2025-12-20 09:31:16,945 | INFO | Automation started.
+2025-12-20 09:31:16,946 | INFO | Processing started for client: ABC Traders
+2025-12-20 09:31:16,952 | INFO | Automation finished
+2025-12-20 09:49:34,048 | INFO | Automation started.
+2025-12-20 09:49:34,053 | INFO | Processing started for client: ABC Traders
+2025-12-20 09:49:34,069 | INFO | Automation finished
+2025-12-20 09:57:01,041 | INFO | Automation started.
+2025-12-20 09:57:01,044 | INFO | Processing started for client: ABC Traders
+2025-12-20 09:57:01,056 | INFO | Automation finished
+2025-12-20 10:00:47,415 | INFO | Automation started.
+2025-12-20 10:00:47,416 | INFO | Processing started for client: ABC Traders
+2025-12-20 10:00:47,423 | INFO | Automation finished
+2025-12-20 10:06:35,215 | INFO | Automation started.
+2025-12-20 10:06:35,217 | INFO | Processing started for client: ABC Traders
+2025-12-20 10:06:35,223 | INFO | Automation finished
+2025-12-20 10:23:55,968 | INFO | Automation started.
+2025-12-20 10:23:55,971 | INFO | Processing started for client: ABC Traders
+2025-12-20 10:23:55,984 | INFO | Automation finished
+2025-12-20 10:26:53,997 | INFO | Automation started.
+2025-12-20 10:26:53,999 | INFO | Processing started for client: ABC Traders
+2025-12-20 10:26:54,005 | INFO | Automation finished
+2025-12-20 10:42:15,351 | INFO | Automation started.
+2025-12-20 10:42:15,353 | INFO | Processing started for client: ABC Traders
+2025-12-20 10:42:15,361 | INFO | Automation finished
+2025-12-20 10:55:37,382 | INFO | Automation started.
+2025-12-20 10:55:37,386 | INFO | Processing started for client: ABC Traders
+2025-12-20 10:55:37,397 | INFO | Automation finished
+2025-12-20 10:57:47,835 | INFO | Automation started.
+2025-12-20 10:57:47,837 | INFO | Processing started for client: ABC Traders
+2025-12-20 10:57:47,842 | INFO | Automation finished
+2025-12-20 11:02:50,359 | INFO | Automation started for client: ABC Traders
+2025-12-20 11:02:50,371 | ERROR | Missing required columns: ['Name']
+2025-12-20 11:14:50,090 | INFO | Automation started for client: ABC Traders
+2025-12-20 11:16:40,330 | INFO | Automation started for client: ABC Traders
+2025-12-20 11:16:40,340 | ERROR | Missing required columns: ['Name']
+2025-12-20 11:22:57,865 | INFO | Automation started for client: ABC Traders
+2025-12-20 11:22:57,883 | ERROR | Missing required columns: ['Name']
+2025-12-20 11:26:38,261 | INFO | Automation started for client: ABC Traders
+2025-12-20 11:26:38,270 | ERROR | Missing required columns: ['Name']
+2025-12-20 11:31:55,329 | INFO | Automation started for client: ABC Traders
+2025-12-20 11:31:55,341 | ERROR | Missing required columns: ['Name']
+2025-12-20 11:36:08,343 | INFO | Automation started for client: ABC Traders
+2025-12-20 11:36:08,359 | INFO | Columns after normalization: ['Customer Name', 'Product', 'Amount', 'City']
+2025-12-20 11:36:08,359 | ERROR | Missing required columns: ['Name']
+2025-12-20 11:40:48,279 | INFO | Automation started for client: ABC Traders
+2025-12-20 11:40:48,294 | INFO | Columns after normalization: ['Name', 'Product', 'Amount', 'City']
+2025-12-20 11:40:48,295 | INFO | All required columns present
+2025-12-20 11:40:48,321 | INFO | Duplicates removed: 1
+2025-12-20 11:40:48,321 | INFO | Missing names removed: 1
+2025-12-20 11:40:48,321 | INFO | Final rows: 3
+2025-12-20 11:40:49,202 | INFO | Excel exported: clean_sales_report.xlsx
+2025-12-20 12:45:06,330 | INFO | Automation started for client: ABC Traders
+2025-12-20 12:45:06,348 | INFO | All required columns present
+2025-12-20 12:45:06,370 | INFO | Duplicates removed: 1
+2025-12-20 12:45:06,370 | INFO | Missing names removed: 1
+2025-12-20 12:45:06,370 | INFO | Final rows: 3
+2025-12-20 12:45:07,140 | INFO | Excel exported: clean_sales_report.xlsx
+2025-12-20 12:58:23,171 | INFO | Automation started for client: ABC Traders
+2025-12-20 12:58:23,190 | INFO | Columns after normalization: ['Name', 'Product', 'Amount', 'City']
+2025-12-20 12:58:23,191 | INFO | All required columns present
+2025-12-20 12:58:23,214 | INFO | Duplicates removed: 1
+2025-12-20 12:58:23,214 | INFO | Missing names removed: 1
+2025-12-20 12:58:23,215 | INFO | Final rows: 3
+2025-12-20 12:58:23,930 | INFO | Excel exported: clean_sales_report.xlsx
+2025-12-20 13:20:10,370 | INFO | Automation started for client: ABC Traders
+2025-12-20 13:20:10,391 | INFO | Columns after normalization: ['Name', 'Product', 'Amount', 'City']
+2025-12-20 13:20:10,392 | INFO | All required columns present
+2025-12-20 13:20:10,418 | INFO | Duplicates removed: 1
+2025-12-20 13:20:10,419 | INFO | Missing names removed: 1
+2025-12-20 13:20:10,419 | INFO | Final rows: 3
+2025-12-20 13:20:11,159 | INFO | Excel exported: clean_sales_report.xlsx
+2025-12-20 13:28:50,979 | INFO | Automation started for client: ABC Traders
+2025-12-20 13:28:50,993 | INFO | Columns after normalization: ['Name', 'Product', 'Amount', 'City']
+2025-12-20 13:28:50,994 | INFO | All required columns present
+2025-12-20 13:28:51,019 | INFO | Duplicates removed: 1
+2025-12-20 13:28:51,019 | INFO | Missing names removed: 1
+2025-12-20 13:28:51,019 | INFO | Final rows: 3
+2025-12-20 13:28:51,727 | INFO | Data quality report generated
+2025-12-20 13:28:51,727 | INFO | Excel exported: clean_sales_report.xlsx
+2025-12-20 14:43:26,165 | INFO | Automation started for client: ABC Traders
+2025-12-20 14:43:26,192 | INFO | Columns after normalization: ['Name', 'Product', 'Amount', 'City']
+2025-12-20 14:43:26,192 | INFO | All required columns present
+2025-12-20 14:43:26,221 | INFO | Duplicates removed: 1
+2025-12-20 14:43:26,221 | INFO | Missing names removed: 1
+2025-12-20 14:43:26,221 | INFO | Final rows: 3
+2025-12-20 14:43:26,966 | INFO | Data quality report generated
+2025-12-20 14:43:26,966 | INFO | Excel exported: output/ABC_Traders/2025-12-20/clean_sales_report.xlsx
