@@ -1,5 +1,5 @@
  📊 CSV to Excel Automation (Python)
-
+Designed to save hours of manual data cleaning for businesses and freelancers.
 Client-ready automation system that cleans, validates, and converts raw CSV files into structured Excel reports.
 
 Designed for **freelancers, small businesses, and data teams** who receive inconsistent CSV data from multiple clients.
@@ -124,4 +124,4 @@ Freelance automation tasks
 Jitendra Bharti
 Python Automation Developer
 Freelance-ready, client-focused automation projects
-
+🔗 This project is part of my Python Automation Portfolio and is actively used in freelance proposals.
