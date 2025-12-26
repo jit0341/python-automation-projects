@@ -50,7 +50,6 @@ Clean Python code
 Clear documentation
 
 Client-oriented structure
->>>>>>> 0645d1823558fd697482a39e1d4d881631710e21
 
 > These projects are actively used as **live samples in freelance proposals**.
 
