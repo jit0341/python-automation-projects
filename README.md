@@ -29,7 +29,7 @@ All projects are designed with **clarity, reusability, and client delivery** in 
 | 02 | CSV to Excel Automation | Cleans raw CSV data and converts it into professional Excel reports | Data entry, accounting, sales reports |
 | 03 | PDF Report Generator | Generates clean, formatted PDF reports from structured data | Invoices, summaries, client reports |
 | 04 | Web Scraping Automation | Extracts structured data from websites into CSV/Excel | Lead generation, research, price tracking |
-
+[Folder & File Organiser](01-folder-file-organiser)
 > These projects are actively used as **live samples in freelance proposals**.
 
 Each project includes:
