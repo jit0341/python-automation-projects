@@ -53,13 +53,6 @@ Client-oriented structure
 
 > These projects are actively used as **live samples in freelance proposals**.
 
-Each project includes:
-- Clean Python code
-- Clear documentation
-- Client-oriented structure
-
----
-
 ## 🛠️ Tech Stack
 
 - Python 3
