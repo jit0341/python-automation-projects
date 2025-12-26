@@ -1,0 +1,39 @@
+2025-12-21 22:19:19,691 | INFO | ============================================================
+2025-12-21 22:19:19,692 | INFO | Starting scraping: Web Scraping - Quotes
+2025-12-21 22:19:19,692 | INFO | ============================================================
+2025-12-21 22:19:26,281 | INFO | Scraped 10 quotes from https://quotes.toscrape.com/page/1/
+2025-12-21 22:19:29,069 | INFO | Scraped 10 quotes from https://quotes.toscrape.com/page/2/
+2025-12-21 22:19:32,510 | INFO | Scraped 10 quotes from https://quotes.toscrape.com/page/3/
+2025-12-21 22:19:32,541 | INFO | Duplicates removed: 0
+2025-12-21 22:19:32,549 | INFO | Statistics - Total: 30, Unique authors: 20
+2025-12-21 22:19:32,573 | INFO | CSV saved: output/Quotes_Collection/2025-12-21/quotes_data.csv
+2025-12-21 22:22:25,582 | INFO | ============================================================
+2025-12-21 22:22:25,582 | INFO | Starting scraping: Web Scraping - Quotes
+2025-12-21 22:22:25,582 | INFO | ============================================================
+2025-12-21 22:22:27,447 | INFO | Scraped 10 quotes from https://quotes.toscrape.com/page/1/
+2025-12-21 22:22:30,708 | INFO | Scraped 10 quotes from https://quotes.toscrape.com/page/2/
+2025-12-21 22:22:33,369 | INFO | Scraped 10 quotes from https://quotes.toscrape.com/page/3/
+2025-12-21 22:22:33,385 | INFO | Duplicates removed: 0
+2025-12-21 22:22:33,392 | INFO | Statistics - Total: 30, Unique authors: 20
+2025-12-21 22:22:33,405 | INFO | CSV saved: output/Quotes_Collection/2025-12-21/quotes_data.csv
+2025-12-21 22:23:48,246 | INFO | ============================================================
+2025-12-21 22:23:48,247 | INFO | Starting scraping: Web Scraping - Quotes
+2025-12-21 22:23:48,248 | INFO | ============================================================
+2025-12-21 22:23:49,794 | INFO | Scraped 10 quotes from https://quotes.toscrape.com/page/1/
+2025-12-21 22:23:52,698 | INFO | Scraped 10 quotes from https://quotes.toscrape.com/page/2/
+2025-12-21 22:23:55,271 | INFO | Scraped 10 quotes from https://quotes.toscrape.com/page/3/
+2025-12-21 22:23:55,286 | INFO | Duplicates removed: 0
+2025-12-21 22:23:55,299 | INFO | Statistics - Total: 30, Unique authors: 20
+2025-12-21 22:23:55,312 | INFO | CSV saved: output/Quotes_Collection/2025-12-21/quotes_data.csv
+2025-12-22 09:25:23,255 | INFO | ============================================================
+2025-12-22 09:25:23,257 | INFO | Starting scraping: Web Scraping - Quotes
+2025-12-22 09:25:23,257 | INFO | ============================================================
+2025-12-22 09:25:25,730 | INFO | Scraped 10 quotes from https://quotes.toscrape.com/page/1/
+2025-12-22 09:25:28,687 | INFO | Scraped 10 quotes from https://quotes.toscrape.com/page/2/
+2025-12-22 09:25:31,364 | INFO | Scraped 10 quotes from https://quotes.toscrape.com/page/3/
+2025-12-22 09:25:31,380 | INFO | Duplicates removed: 0
+2025-12-22 09:25:31,389 | INFO | Statistics - Total: 30, Unique authors: 20
+2025-12-22 09:25:31,426 | INFO | CSV saved: output/Quotes_Collection/2025-12-22/quotes_data.csv
+2025-12-22 09:25:31,442 | INFO | Report generated: output/Quotes_Collection/2025-12-22/report.txt
+2025-12-22 09:25:31,445 | INFO | Scraping completed successfully
+2025-12-22 09:25:31,445 | INFO | ============================================================

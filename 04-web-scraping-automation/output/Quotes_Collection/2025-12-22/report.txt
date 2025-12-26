@@ -1,0 +1,33 @@
+
+============================================================
+WEB SCRAPING REPORT
+============================================================
+
+Project: Web Scraping - Quotes
+Client: Quotes Collection
+Date: 2025-12-22 09:25:31
+
+SCRAPING DETAILS:
+- Base URL: https://quotes.toscrape.com
+- Pages scraped: 3
+- Total quotes collected: 30
+- Unique authors: 20
+- Duplicates removed: 0
+
+TOP 5 AUTHORS:
+author
+Albert Einstein    6
+J.K. Rowling       3
+Marilyn Monroe     2
+Bob Marley         2
+Dr. Seuss          2
+
+ALL UNIQUE AUTHORS (20):
+Albert Einstein, Allen Saunders, André Gide, Bob Marley, Douglas Adams, Dr. Seuss, Eleanor Roosevelt, Elie Wiesel, Friedrich Nietzsche, Garrison Keillor, J.K. Rowling, Jane Austen, Jim Henson, Marilyn Monroe, Mark Twain, Mother Teresa, Pablo Neruda, Ralph Waldo Emerson, Steve Martin, Thomas A. Edison
+
+OUTPUT FILES:
+- Data: output/Quotes_Collection/2025-12-22/quotes_data.csv
+- Report: output/Quotes_Collection/2025-12-22/report.txt
+- Log: output/Quotes_Collection/2025-12-22/logs/logs/scraper.log
+
+============================================================
