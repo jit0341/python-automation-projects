@@ -29,9 +29,6 @@ All projects are designed with **clarity, reusability, and client delivery** in 
 | 02 | [CSV to Excel Automation](02-csv-to-excel-automation) | Cleans raw CSV data and converts it into professional Excel reports | Data entry, accounting, sales reports |
 | 03 | [PDF Report Generator](03-pdf-report-generator) | Generates clean, formatted PDF reports from structured data | Invoices, summaries, client reports |
 | 04 | [Web Scraping Automation](04-web-scraping-automation) | Extracts structured data from websites into CSV/Excel | Lead generation, research, price tracking |
-<<<<<<< HEAD
-=======
-=======
 | 01 | Folder & File Organiser | Automatically sorts mixed files into structured folders | Office file management, document cleanup |
 | 02 | CSV to Excel Automation | Cleans raw CSV data and converts it into professional Excel reports | Data entry, accounting, sales reports |
 | 03 | PDF Report Generator | Generates clean, formatted PDF reports from structured data | Invoices, summaries, client reports |
@@ -50,7 +47,6 @@ Clean Python code
 Clear documentation
 
 Client-oriented structure
->>>>>>> 03d04fdc283faef189ad281b048161c1d04e1a3e
 
 > These projects are actively used as **live samples in freelance proposals**.
 
