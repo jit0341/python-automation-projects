@@ -80,7 +80,7 @@ def export_to_excel(results, output_file='output/delivery_notes.xlsx'):
     for result in results:
         main_rows.append({
             'File': result['File'],
-            'DN Number': result['DN Numbet'],'Date': result['Date'],
+            'DN Number': result['DN Number'],'Date': result['Date'],
             'Supplier': result['Supplier'],
             'Total Amount': result['Total Amount'],
             'Items Count': result['Items Count'],
