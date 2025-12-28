@@ -138,10 +138,10 @@ Processing: dn_002.png
 
 ## 📊 Excel Output Format
 
-| File | DN Number | Date | Supplier | Total Amount |
-|------|-----------|------|----------|--------------|
-| dn_001.png | DN-2024-001 | 28-12-2024 | ABC Suppliers Ltd | 1250.00 |
-| dn_002.png | DN-2024-002 | 27-12-2024 | XYZ Industries | 3500.00 |
+| File | DN Number | Date | Supplier | Total Amount | Review Status|
+|------|-----------|------|----------|--------------|----------|
+| dn_001.png | DN-2024-001 | 28-12-2024 | ABC Suppliers Ltd | 1250.00 |NEEDS REVIEW|
+| dn_002.png | DN-2024-002 | 27-12-2024 | XYZ Industries | 3500.00 | NEEDS REVIEW|
 
 ---
 
