@@ -71,7 +71,7 @@ def extract_from_image(image_path):
         'Review Status': 'NEEDS REVIEW'
     }
 
-def export_to_excel(results, output_file='output/delivery_notes.xlsx'):
+def export_to_excel(results, output_file='output/delivery_notes1.xlsx'):
     """Export results with items to Excel"""
     
     main_rows = []
@@ -135,7 +135,7 @@ for filename in os.listdir('images'):
         print()
 
 if results:
-    output_file = 'output/delivery_notes.xlsx'
+    output_file = 'output/delivery_notes1.xlsx'
     main_count, items_count = export_to_excel(results, output_file)
     
     print("=" * 60)
