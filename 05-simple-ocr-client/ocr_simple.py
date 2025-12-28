@@ -42,7 +42,6 @@ def extract_from_image(image_path):
         'Total Amount': total,
         'Review Status': 'NEEDS REVIEW'
     }
-    row['Review Status'] = 'NEEDS REVIEW'
 
 # Main
 print("🚀 Starting OCR Processing...")
