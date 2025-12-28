@@ -5,8 +5,6 @@
 
 Simple OCR (Optical Character Recognition) system to extract structured data from delivery note images and export to Excel.
 
-**Use Case:** Automate manual data entry from delivery notes/invoices into Excel spreadsheets.
-
 ---
 
 ## ✨ Features
@@ -208,6 +206,7 @@ python make_samples.py
 - [ ] Add GUI interface
 - [ ] Email results automatically
 - [ ] Support multiple languages
+- [ ] Optional future enhancements (not required for Phase 1)
 
 ---
 
@@ -218,7 +217,7 @@ python make_samples.py
 3. **Retail Stores:** Extract receipt data
 4. **Import/Export:** Convert shipping documents
 5. **Healthcare:** Digitize patient forms
-
+## Designed with a human-review step to ensure reliability
 ---
 
 ## 💰 Commercial Use
@@ -264,7 +263,7 @@ For issues or questions:
 
 ## 📜 License
 
-Free to use for personal and commercial projects.
+Licensed for client delivery and custom implementations.
 
 ---
 
