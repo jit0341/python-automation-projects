@@ -16,6 +16,8 @@ import numpy as np
 def preprocess_image(image_path):
     """Enhance image quality for better OCR"""
     img = cv2.imread(image_path)
+    if img is None:
+        raise ValueError(f"Image could not be read: {image_path}")
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     enhanced = cv2.equalizeHist(gray)
     denoised = cv2.fastNlMeansDenoising(enhanced)
@@ -44,7 +46,10 @@ def extract_from_image(image_path):
     pil_image = Image.fromarray(preprocessed)
     
     print(f"  → Extracting text with OCR...")
-    text = pytesseract.image_to_string(pil_image)
+    text = pytesseract.image_to_string(
+    pil_image,
+    config='--psm 6'
+)
     
     dn_match = re.search(r'DN[-\s]?\d{4}[-\s]?\d{3}', text)
     dn_number = dn_match.group() if dn_match else "NOT FOUND"
@@ -59,6 +64,18 @@ def extract_from_image(image_path):
     
     print(f"  → Extracting line items...")
     items = extract_items(text)
+    # Amount consistency check
+    try:
+        total_amount = float(total)
+    except:
+        total_amount = 0.0
+
+
+    if items and abs(sum(i['Amount'] for i in items) - total_amount) > 1:
+
+        review_status = 'CHECK TOTAL MISMATCH'
+    else:
+        review_status = 'OK'
     
     return {
         'File': os.path.basename(image_path),
@@ -68,7 +85,7 @@ def extract_from_image(image_path):
         'Total Amount': total,
         'Items Count': len(items),
         'Items': items,
-        'Review Status': 'NEEDS REVIEW'
+        'Review Status': review_status
     }
 
 def export_to_excel(results, output_file='output/delivery_notes1.xlsx'):
