@@ -240,6 +240,10 @@ This tool can be offered as a service:
 - Accuracy: 85-95% (depends on image quality)
 
 ---
+## Limitations & Review Notes:
+- Blurry images may need manual correction
+- Handwritten fields are flagged for review
+- Field patterns can be adjusted per client format
 
 ## 🔗 Related Projects
 
