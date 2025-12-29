@@ -1,8 +1,8 @@
+
 """
-Simple OCR for Delivery Notes - ADVANCED VERSION
-For: XYZ Client
-Date: 29-Dec-2024
-Version: 2.0 (with preprocessing + item extraction)
+Advanced OCR for Delivery Notes with PO Matching
+Author: Jitendra
+Version: FINAL (Client Ready)
 """
 
 import pytesseract
@@ -11,155 +11,204 @@ import pandas as pd
 import os
 import re
 import cv2
-import numpy as np
 
+# =========================
+# CONFIG
+# =========================
+IMAGES_DIR = "images"
+OUTPUT_FILE = "output/delivery_notes_final.xlsx"
+PO_FILE = "po_data.csv"      # optional
+ENABLE_PO_MATCHING = True   # turn ON/OFF
+
+# =========================
+# IMAGE PREPROCESSING
+# =========================
 def preprocess_image(image_path):
-    """Enhance image quality for better OCR"""
     img = cv2.imread(image_path)
     if img is None:
-        raise ValueError(f"Image could not be read: {image_path}")
+        raise ValueError(f"Cannot read image: {image_path}")
+
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     enhanced = cv2.equalizeHist(gray)
     denoised = cv2.fastNlMeansDenoising(enhanced)
     return denoised
 
+# =========================
+# OCR TEXT CLEANUP
+# =========================
+def clean_ocr_text(text):
+    text = re.sub(r'\n+', '\n', text)
+    text = re.sub(r'([a-zA-Z])\n([a-zA-Z])', r'\1 \2', text)
+    return text
+
+# =========================
+# LINE ITEM EXTRACTION
+# =========================
 def extract_items(text):
-    """Extract line items from delivery note"""
     items = []
-    pattern = r'([A-Z]{3,6}\d{3})\s+([A-Za-z\s]+)\s+(\d+)\s+\$?(\d+\.?\d*)'
+
+    pattern = r'([A-Z]{2,6}\d{2,4})\s+([A-Za-z\s]+)\s+(\d+)\s+(\d+\.?\d*)'
     matches = re.findall(pattern, text)
-    
-    for match in matches:
+
+    for m in matches:
         items.append({
-            'Code': match[0],
-            'Description': match[1].strip(),
-            'Quantity': int(match[2]),
-            'Amount': float(match[3])
+            "Code": m[0],
+            "Description": m[1].strip(),
+            "Quantity": int(m[2]),
+            "Amount": float(m[3])
         })
+
     return items
 
-def extract_from_image(image_path):
-    """Extract text and find required fields - ENHANCED"""
+# =========================
+# PO DATA
+# =========================
+def load_po_data(po_file):
+    if not os.path.exists(po_file):
+        return None
+
+    if po_file.endswith(".csv"):
+        return pd.read_csv(po_file)
+    else:
+        return pd.read_excel(po_file)
+
+def match_items_with_po(items, po_df):
+    matched = []
+
+    for item in items:
+        row = po_df[po_df["Product Code"] == item["Code"]]
+
+        if row.empty:
+            status = "NO PO MATCH"
+            po_qty = None
+        else:
+            po_qty = int(row.iloc[0]["Ordered Qty"])
+            status = "MATCH" if item["Quantity"] == po_qty else "QTY MISMATCH"
+
+        matched.append({
+            **item,
+            "PO Qty": po_qty,
+            "PO Match Status": status
+        })
+
+    return matched
+
+# =========================
+# MAIN EXTRACTION
+# =========================
+def extract_from_image(image_path, po_df=None):
+    pre = preprocess_image(image_path)
+    pil_img = Image.fromarray(pre)
+
+    text = pytesseract.image_to_string(pil_img, config="--psm 6")
+    print("------ RAW OCR TEXT ------")
+    print(text)
+    print("--------------------------")
+    text = clean_ocr_text(text)
+
+    # --- DN ---
     
-    print(f"  → Preprocessing image...")
-    preprocessed = preprocess_image(image_path)
-    pil_image = Image.fromarray(preprocessed)
-    
-    print(f"  → Extracting text with OCR...")
-    text = pytesseract.image_to_string(
-    pil_image,
-    config='--psm 6'
+    dn_match = re.search(
+    r'(D[-\s]?\d{4}[-\s]?\d{3})',
+    text,
+    re.IGNORECASE
 )
-    
-    dn_match = re.search(r'DN[-\s]?\d{4}[-\s]?\d{3}', text)
-    dn_number = dn_match.group() if dn_match else "NOT FOUND"
-    
+    dn_number = dn_match.group(1) if dn_match else "NOT FOUND"
+
+    # --- DATE ---
     date_match = re.search(r'\d{2}[-/]\d{2}[-/]\d{4}', text)
     date = date_match.group() if date_match else "NOT FOUND"
-    supplier_match = re.search(r'Supplier[:\s]+([A-Za-z\s]+)', text, re.IGNORECASE)
-    supplier = supplier_match.group(1).strip() if supplier_match else "NOT FOUND"
-    
-    total_match = re.search(r'Total[:\s]*\$?[\s]*(\d+\.?\d*)', text, re.IGNORECASE)
-    total = total_match.group(1) if total_match else "0"
-    
-    print(f"  → Extracting line items...")
+
+    # --- SUPPLIER ---
+    supplier_match = re.search(
+        r'(Supplier|From)[:\s]+([A-Za-z\s]+)',
+        text,
+        re.IGNORECASE
+    )
+    supplier = supplier_match.group(2).strip() if supplier_match else "NOT FOUND"
+
+    # --- TOTAL ---
+    total_match = re.search(
+    r'Total[:\s]*\$?\s*([\d,]+\.?\d*)',
+    text,
+    re.IGNORECASE
+)
+    total = total_match.group(1).replace(',', '') if total_match else "0"
+
+    # --- ITEMS ---
     items = extract_items(text)
-    # Amount consistency check
-    try:
-        total_amount = float(total)
-    except:
-        total_amount = 0.0
 
-
-    if items and abs(sum(i['Amount'] for i in items) - total_amount) > 1:
-
-        review_status = 'CHECK TOTAL MISMATCH'
+    if ENABLE_PO_MATCHING and po_df is not None:
+        items = match_items_with_po(items, po_df)
+        po_status = "PO CHECKED"
     else:
-        review_status = 'OK'
-    
+        po_status = "PO NOT USED"
+
     return {
-        'File': os.path.basename(image_path),
-        'DN Number': dn_number,
-        'Date': date,
-        'Supplier': supplier,
-        'Total Amount': total,
-        'Items Count': len(items),
-        'Items': items,
-        'Review Status': review_status
+        "File": os.path.basename(image_path),
+        "DN Number": dn_number,
+        "Date": date,
+        "Supplier": supplier,
+        "Total Amount": total,
+        "Items Count": len(items),
+        "PO Status": po_status,
+        "Items": items
     }
 
-def export_to_excel(results, output_file='output/delivery_notes1.xlsx'):
-    """Export results with items to Excel"""
-    
+# =========================
+# EXPORT
+# =========================
+def export_to_excel(results, output_file):
     main_rows = []
-    items_rows = []
-    
-    for result in results:
-        main_rows.append({
-            'File': result['File'],
-            'DN Number': result['DN Number'],'Date': result['Date'],
-            'Supplier': result['Supplier'],
-            'Total Amount': result['Total Amount'],
-            'Items Count': result['Items Count'],
-            'Review Status': result['Review Status']
-        })
-        
-        for item in result['Items']:
-            items_rows.append({
-                'DN Number': result['DN Number'],
-                'Item Code': item['Code'],
-                'Description': item['Description'],
-                'Quantity': item['Quantity'],
-                'Amount': item['Amount']
-            })
-    
-    df_main = pd.DataFrame(main_rows)
-    df_items = pd.DataFrame(items_rows)
-    
-    with pd.ExcelWriter(output_file, engine='openpyxl') as writer:
-        df_main.to_excel(writer, sheet_name='Delivery Notes', index=False)
-        if not df_items.empty:
-            df_items.to_excel(writer, sheet_name='Line Items', index=False)
-    
-    return len(main_rows), len(items_rows)
+    item_rows = []
 
-# Main execution
-print("🚀 Starting ADVANCEDOCR Processing...")
-print("   ✓ Image preprocessing enabled")
-print("   ✓ Line item extraction enabled")
-print()
+    for r in results:
+        main_rows.append({
+            "File": r["File"],
+            "DN Number": r["DN Number"],
+            "Date": r["Date"],
+            "Supplier": r["Supplier"],
+            "Total Amount": r["Total Amount"],
+            "Items Count": r["Items Count"],
+            "PO Status": r["PO Status"]
+        })
+
+        for it in r["Items"]:
+            item_rows.append({
+                "DN Number": r["DN Number"],
+                "Item Code": it["Code"],
+                "Description": it["Description"],
+                "Quantity": it["Quantity"],
+                "Amount": it["Amount"],
+                "PO Qty": it.get("PO Qty"),
+                "PO Match Status": it.get("PO Match Status")
+            })
+
+    df_main = pd.DataFrame(main_rows)
+    df_items = pd.DataFrame(item_rows)
+
+    with pd.ExcelWriter(output_file, engine="openpyxl") as writer:
+        df_main.to_excel(writer, sheet_name="Delivery Notes", index=False)
+        if not df_items.empty:
+            df_items.to_excel(writer, sheet_name="Line Items", index=False)
+
+# =========================
+# RUN
+# =========================
+print("🚀 Starting ADVANCED OCR Processing")
+
+po_df = load_po_data(PO_FILE) if ENABLE_PO_MATCHING else None
 
 results = []
 
-for filename in os.listdir('images'):
-    if filename.endswith(('.png', '.jpg', '.jpeg')):
-        print(f"📄 Processing: {filename}")
-        print("-" * 50)
-        
-        image_path = os.path.join('images', filename)
-        data = extract_from_image(image_path)
+for f in os.listdir(IMAGES_DIR):
+    if f.lower().endswith((".png", ".jpg", ".jpeg")):
+        print(f"📄 Processing: {f}")
+        data = extract_from_image(os.path.join(IMAGES_DIR, f), po_df)
         results.append(data)
-        
-        print(f"  ✓ DN: {data['DN Number']}")
-        print(f"  ✓ Date: {data['Date']}")
-        print(f"  ✓ Supplier: {data['Supplier']}")
-        print(f"  ✓ Total: ${data['Total Amount']}")
-        print(f"  ✓ Items Found: {data['Items Count']}")
-        if data['Items']:
-            print(f"  ✓ Line Items:")
-            for item in data['Items']:
-                print(f"     - {item['Code']}: {item['Description']} (Qty: {item['Quantity']}, ${item['Amount']})")
-        print()
 
 if results:
-    output_file = 'output/delivery_notes1.xlsx'
-    main_count, items_count = export_to_excel(results, output_file)
-    
-    print("=" * 60)
-    print(f"✅ DONE! Processed {len(results)} images")
-    print(f"📊 Excel file: {output_file}")
-    print(f"   → Sheet 1 'Delivery Notes': {main_count} records")
-    print(f"   → Sheet 2 'Line Items': {items_count} items")
-    print("=" * 60)
+    export_to_excel(results, OUTPUT_FILE)
+    print(f"✅ DONE! Excel created: {OUTPUT_FILE}")
 else:
-    print("❌ No images found in 'images' folder!")
+    print("❌ No images found")
