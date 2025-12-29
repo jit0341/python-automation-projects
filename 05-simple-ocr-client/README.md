@@ -170,13 +170,14 @@ output/delivery_notes_final.xlsx
 
 Sample Input – Delivery Note Image
 
-
+This is a typical delivery note photo captured from a mobile device.
+![Sample Delivery Note Input](screenshots/input_delivery_note.png)
 
 
 ---
 
 OCR Processing – Terminal Output
-
+![OCR Terminal Output](screenshots/terminal_output.png)
 
 
 
@@ -187,8 +188,10 @@ Excel Output Preview
 Sheet 1 – Delivery Notes Summary 
 
 Sheet 2 – Line Items & PO Matching 
-
-
+![Excel Output](screenshots/excel_output.png)
+> The output demonstrates how unstructured delivery note images
+> are converted into clean, review-ready Excel data suitable for
+> admin workflows and system uploads.
 ---
 
 ⚡ Quick Demo (60 Seconds)
