@@ -1,24 +1,22 @@
-# Media files
-*.mp3
+# =========================
+# Ignore heavy media files
+# =========================
 *.mp4
-*.avi
+*.mp3
 *.mov
-*.wav
+*.avi
+*.mkv
 
-# Images
-*.jpg
-*.jpeg
-*.png
-*.webp
+# =========================
+# Ignore generated outputs
+# =========================
+output/
+__pycache__/
+*.pyc
 
-# Documents
-*.pdf
-
-# Test & demo folders
-Test_folder/
-test_files/
-screenshots/
-
-# OS / misc
-.DS_Store
-Thumbs.db
+# =========================
+# Allow screenshots (for README)
+# =========================
+!screenshots/
+!screenshots/*.png
+!screenshots/*.jpg
