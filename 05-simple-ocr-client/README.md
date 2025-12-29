@@ -1,10 +1,16 @@
-📄 Simple Delivery Note OCR (Photo/PDF → Excel)
+📄 Simple Delivery Note OCR
+
+Photo / Image → Excel (Admin-Ready)
+
+
+---
 
 🎯 Overview
 
-A lightweight, reliable OCR tool to extract structured data from delivery note images and export it into clean Excel sheets for admin review and upload into existing systems.
+A lightweight and reliable OCR tool to extract structured data from delivery note images and export it into clean Excel sheets for admin review and upload into existing systems.
 
-Designed for simplicity, accuracy, and human verification — not over-automation.
+This tool is intentionally simple — focused on accuracy, transparency, and human verification.
+No ERP integrations. No automation theatre.
 
 
 ---
@@ -15,17 +21,14 @@ Input
 
 Delivery note images (PNG / JPG / JPEG)
 
+Optional PO reference file (po_data.csv)
+
 
 Output
 
-Structured Excel file with:
+Clean Excel file (.xlsx)
 
-Delivery note summary
-
-Optional line items
-
-Review-friendly format
-
+Ready for admin review and upload
 
 
 Workflow
@@ -36,13 +39,13 @@ Workflow
 2. Key fields extracted
 
 
-3. Optional PO matching
+3. Optional PO quantity matching
 
 
 4. Excel export
 
 
-5. Admin review & upload
+5. Human review & upload
 
 
 
@@ -51,15 +54,17 @@ Workflow
 
 ✨ Key Features
 
-Core Features
+Core Capabilities
 
 OCR using Tesseract
 
-Batch processing of images
+Batch image processing
 
 Regex-based field extraction
 
 Excel export (.xlsx)
+
+Designed for reliability, not complexity
 
 
 Extracted Fields
@@ -68,30 +73,36 @@ Delivery Note Number
 
 Date
 
-Supplier
+Supplier Name
 
 Total Amount
 
 Line Items (Advanced mode)
 
+PO Quantity Match Status (optional)
 
-Reliability
 
-Preprocessing for better OCR accuracy
+Reliability First
+
+Image preprocessing (Advanced mode)
 
 Review flags for mismatches
 
-Designed for human verification
+Clear visibility of raw OCR text (debug option)
+
+Admin-friendly output
 
 
 
 ---
 
-🧩 Two Processing Modes
+🧩 Processing Modes
 
 1️⃣ Basic OCR (Fast)
 
 File: ocr_simple.py
+
+What it does
 
 Extracts main fields only
 
@@ -109,11 +120,11 @@ Low-volume work
 Quick data entry
 
 
-Run:
+Run
 
 python ocr_simple.py
 
-Output:
+Output
 
 output/delivery_notes_basic.xlsx
 
@@ -124,11 +135,13 @@ output/delivery_notes_basic.xlsx
 
 File: ocr_advanced.py
 
+What it does
+
 Image preprocessing (OpenCV)
 
 Line item extraction
 
-PO quantity matching (optional)
+Optional PO quantity matching
 
 Multi-sheet Excel output
 
@@ -137,31 +150,75 @@ Best for
 
 Inventory workflows
 
-Admin review
+Admin verification
 
-Client delivery
+Client delivery & freelancing projects
 
 
-Run:
+Run
 
 python ocr_advanced.py
 
-Output:
+Output
 
 output/delivery_notes_final.xlsx
 
 
 ---
 
+📸 Visual Examples
+
+Sample Input – Delivery Note Image
+
+
+
+
+---
+
+OCR Processing – Terminal Output
+
+
+
+
+---
+
+Excel Output Preview
+
+Sheet 1 – Delivery Notes Summary 
+
+Sheet 2 – Line Items & PO Matching 
+
+
+---
+
+⚡ Quick Demo (60 Seconds)
+
+# 1. Install dependencies
+pip install -r requirements.txt
+
+# 2. Add delivery note images
+cp your_image.png images/
+
+# 3. Run Advanced OCR
+python ocr_advanced.py
+
+Result
+
+Excel file generated in output/
+
+Ready for admin review & upload
+
+
+
+---
+
 📊 Excel Output Structure
 
-Sheet 1: Delivery Notes
+Sheet 1 – Delivery Notes
 
-File	DN Number	Date	Supplier	Total	Items Count	Status
+| File | DN Number | Date | Supplier | Total | Items Count | Status |
 
-
-
-Sheet 2: Line Items
+Sheet 2 – Line Items
 
 | DN Number | Item Code | Description | Quantity | Amount | PO Qty | Match Status |
 
@@ -172,7 +229,7 @@ Sheet 2: Line Items
 
 System Dependency
 
-Install Tesseract OCR:
+Install Tesseract OCR
 
 pkg install tesseract
 # or
@@ -181,6 +238,9 @@ sudo apt install tesseract-ocr -y
 Verify:
 
 tesseract --version
+
+
+---
 
 Python Packages
 
@@ -198,37 +258,17 @@ numpy
 
 ---
 
-🚀 Quick Start
-
-# Go to project
-cd 05-simple-ocr-client
-
-# Install dependencies
-pip install -r requirements.txt
-
-# (Optional) Generate sample images
-python make_samples.py
-
-# Add your images
-cp your_image.png images/
-
-# Run Advanced OCR
-python ocr_advanced.py
-
-
----
-
 📁 Project Structure
 
 05-simple-ocr-client/
-│
 ├── ocr_simple.py
 ├── ocr_advanced.py
 ├── make_samples.py
-├── po_data.csv            # Optional
+├── po_data.csv          # Optional (PO matching)
 │
-├── images/                # Input images
-├── output/                # Excel output
+├── images/              # Input images
+├── output/              # Excel output
+├── screenshots/         # README visuals
 └── README.md
 
 
@@ -236,13 +276,13 @@ python ocr_advanced.py
 
 ⚠️ Important Notes
 
-This tool is semi-automated by design
+This is a semi-automated tool by design
 
 Admin review is expected
 
-Handwritten text may require correction
+Handwritten text may need correction
 
-Regex patterns can be customized per client format
+Regex patterns can be adjusted per client format
 
 
 
@@ -252,7 +292,7 @@ Regex patterns can be customized per client format
 
 Clean images: 90–95%
 
-Blurry / handwritten: manual review needed
+Blurry / handwritten: manual review required
 
 Accuracy improves with consistent document formats
 
@@ -262,13 +302,13 @@ Accuracy improves with consistent document formats
 
 🧠 Designed For
 
-Accounting & Admin teams
+Accounting & admin teams
 
 Warehouses & logistics
 
 Small businesses
 
-Freelance document processing work
+Freelancers doing document processing
 
 OCR-based automation projects
 
@@ -278,11 +318,12 @@ OCR-based automation projects
 
 🛠 Customization Examples
 
-Add PO Number:
+Add PO Number Extraction
 
 po_match = re.search(r'PO[:\s]+([A-Z0-9-]+)', text)
+po_number = po_match.group(1) if po_match else "NOT FOUND"
 
-Change date format:
+Change Date Format
 
 re.search(r'\d{4}-\d{2}-\d{2}', text)
 
@@ -311,3 +352,23 @@ Created & maintained by: jit0341
 
 ---
 
+🚀 Next Improvements (Optional)
+
+PDF input support
+
+Web upload interface
+
+API integration
+
+Multi-language OCR
+
+Batch scheduler
+
+
+
+---
+
+Built for real-world admin workflows — simple, reliable, and transparent.
+
+
+---
