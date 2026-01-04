@@ -66,7 +66,10 @@ This automation script:
 🧠 Note:
 This repository contains both learning experiments and a production-ready scraper.
 Clients should refer to `scraper_professional.py` as the final implementation.
-
+⚠️ Note:
+This scraper is network-safe. 
+In case of temporary timeouts or slow connections, the script logs the issue and continues gracefully.
+Re-running the script will complete remaining pages without data loss.
 ## 📁 Project Structure
 
 ```

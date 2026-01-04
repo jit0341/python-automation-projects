@@ -48,7 +48,6 @@ from config import (
 
 def scrape_single_page(url):
     """
-    Scrape quotes from a single page
     
     Args:
         url (str): URL to scrape
@@ -56,36 +55,43 @@ def scrape_single_page(url):
     Returns:
         list: List of dictionaries with quote and author
     """
+    """
+    Scrape quotes from a single page safely
+    """
     try:
         print(f"📄 Scraping: {url}")
+
+        response = requests.get(
+            url,
+            headers=HEADERS,
+            timeout=10
+        )
         response.raise_for_status()
-        response = requests.get(url, headers=HEADERS, timeout=10)
-        
-        soup = BeautifulSoup(response.content, 'html.parser')
-        
-        # Find all quotes and authors
-        quotes = soup.find_all('span', class_='text')
-        authors = soup.find_all('small', class_='author')
-        
-        # Build data list
+
+        soup = BeautifulSoup(response.content, "html.parser")
+
+        quotes = soup.find_all("span", class_="text")
+        authors = soup.find_all("small", class_="author")
+
         data = []
-        for quote, author in zip(quotes, authors):
+        for q, a in zip(quotes, authors):
             data.append({
-                'quote': quote.text,
-                'author': author.text
+                "quote": q.text.strip(),
+                "author": a.text.strip()
             })
-        
+
         print(f"   ✅ Found {len(data)} quotes")
         logging.info(f"Scraped {len(data)} quotes from {url}")
         return data
-        
+
     except requests.exceptions.RequestException as e:
-        print(f"   ❌ Network Error: {e}")
+        print(f"   ❌ Network error: {e}")
         logging.error(f"Network error on {url}: {e}")
         return []
+
     except Exception as e:
-        print(f"   ❌ Error: {e}")
-        logging.error(f"Error scraping {url}: {e}")
+        print(f"   ❌ Unexpected error: {e}")
+        logging.error(f"Unexpected error on {url}: {e}")
         return []
 
 
