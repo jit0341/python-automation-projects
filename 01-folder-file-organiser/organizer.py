@@ -1,49 +1,101 @@
 import os
 import shutil
-# Base directory where files will be organised.
-base_path = os.getcwd()
 
-# Mapping of folder names to file extensions
-file_types = {
-    'Images': ['.jpg','.png','.jpeg'],
-    'Documents': ['.pdf','.docx','.txt'],
-    'Videos': ['.mp4','.mkv'],
-    'Audio': ['.mp3']
-    }
+# ==============================
+# CONFIGURATION
+# ==============================
+
+BASE_PATH = os.getcwd()
+
+DRY_RUN = False     # True = preview only (no files moved)
+OVERWRITE = False    # True = overwrite existing files
+
+FILE_TYPES = {
+    "Images": [".jpg", ".png", ".jpeg"],
+    "Documents": [".pdf", ".docx", ".txt"],
+    "Videos": [".mp4", ".mkv"],
+    "Audio": [".mp3"]
+}
+
+# ==============================
+# COUNTERS
+# ==============================
 
 total_files = 0
 moved_files = 0
 skipped_files = 0
 
-# Loop through all items in the directory
-for item in os.listdir(base_path):
-    item_path = os.path.join(base_path,item)
-# check if item is a file.
-    if os.path.isfile(item_path):
-        total_files += 1
-# Skip the script file(organizer.py) itself.
-        if item == 'organizer.py':
-            skipped_files += 1
-            continue
-# Extract file extension.
-        name,ext = os.path.splitext(item)
-        moved = False
-# Match extension with folder.
-        for folder_name, extensions in file_types.items():
-            if ext.lower() in extensions:
-                folder_path = os.path.join(base_path,folder_name)
-                os.makedirs(folder_path, exist_ok = True)
-                shutil.move(item_path,os.path.join(folder_path,item))
-                moved_files +=1
+# ==============================
+# MAIN PROCESS
+# ==============================
+
+for item in os.listdir(BASE_PATH):
+    item_path = os.path.join(BASE_PATH, item)
+
+    # --- Validation ---
+    if not os.path.isfile(item_path):
+        continue
+
+    total_files += 1
+
+    # Skip the script itself
+    if item == "organizer.py":
+        skipped_files += 1
+        continue
+
+    # Skip hidden files
+    if item.startswith("."):
+        skipped_files += 1
+        continue
+
+    name, ext = os.path.splitext(item)
+    moved = False
+
+    # --- Business Rules ---
+    for folder_name, extensions in FILE_TYPES.items():
+        if ext.lower() in extensions:
+            folder_path = os.path.join(BASE_PATH, folder_name)
+            os.makedirs(folder_path, exist_ok=True)
+
+            destination = os.path.join(folder_path, item)
+
+            # Overwrite protection
+            if os.path.exists(destination) and not OVERWRITE:
+                skipped_files += 1
                 moved = True
                 break
-            # If no match found ,move to others
-        if not moved:
-            others_path = os.path.join(base_path, "others")
-            os.makedirs(others_path, exist_ok = True)
 
-            shutil.move(item_path, os.path.join(others_path, item))
-            moved_files +=1
+            if DRY_RUN:
+                print(f"[DRY-RUN] Would move: {item} → {folder_name}")
+                moved_files += 1
+            else:
+                shutil.move(item_path, destination)
+                moved_files += 1
+
+            moved = True
+            break
+
+    # --- Others category ---
+    if not moved:
+        others_path = os.path.join(BASE_PATH, "Others")
+        os.makedirs(others_path, exist_ok=True)
+
+        destination = os.path.join(others_path, item)
+
+        if os.path.exists(destination) and not OVERWRITE:
+            skipped_files += 1
+            continue
+
+        if DRY_RUN:
+            print(f"[DRY-RUN] Would move: {item} → Others")
+            moved_files += 1
+        else:
+            shutil.move(item_path, destination)
+            moved_files += 1
+
+# ==============================
+# SUMMARY REPORT
+# ==============================
 
 print("\n📊 Folder Organizer Summary")
 print("---------------------------")
