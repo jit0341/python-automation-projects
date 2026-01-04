@@ -41,6 +41,9 @@ Clients can provide their logo (PNG/JPG), which is automatically embedded in the
 ### After (Branded PDF Report)
 ![After](screenshots/after.png)
 
+These screenshots demonstrate the complete automation pipeline —
+from raw input data to a branded, client-ready PDF report.
+
 ## 🧾 Input CSV Format
 
 ```csv
