@@ -14,9 +14,12 @@ Designed for freelancers, businesses, and client deliverables.
 ✔ Safe re-runs (PDF overwritten cleanly)  
 ✔ CLI configurable (input, output, title)  
 ✔ Logging for traceability  
-
+✔ Client branding support (logo & header)
+✔ Professional, client-ready PDF layout
 ---
-
+🔖 Branding:
+The PDF supports company logo integration.
+Clients can provide their logo (PNG/JPG), which is automatically embedded in the report header.
 ## 📁 Project Structure
 
 03-pdf-report-generator/
