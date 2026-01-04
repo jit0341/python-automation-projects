@@ -33,6 +33,14 @@ Clients can provide their logo (PNG/JPG), which is automatically embedded in the
 
 ---
 
+## 🖼️ Before & After (PDF Output)
+
+### Before (Raw CSV Data)
+![Before](screenshots/before.png)
+
+### After (Branded PDF Report)
+![After](screenshots/after.png)
+
 ## 🧾 Input CSV Format
 
 ```csv
@@ -40,13 +48,11 @@ Product,Quantity,Revenue
 Laptop,5,250000
 Mobile,10,200000
 Tablet,3,45000
+
 ▶️ How to Run
-Copy code
-Bash
 pip install reportlab
 python pdf_report.py
 Custom run (client-ready):
-Copy code
 Bash
 python pdf_report.py --input data/sales_summary.csv \
                      --output output/sales_report.pdf \
