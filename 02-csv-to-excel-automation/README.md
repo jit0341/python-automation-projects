@@ -39,7 +39,7 @@ The **same script works for multiple clients** by updating only the config file.
 ✔ Date-wise report organization  
 ✔ Detailed logging  
 ✔ Fully reusable automation  
-
+✔ Config-driven design — new clients supported without changing code
 ---
 
 ## 🧰 Tech Stack
@@ -80,8 +80,7 @@ COLUMN_ALIASES = {
 ▶️ How to Run
 
 pip install pandas openpyxl
-python csv_to_excel_automation.py
-
+python csv_to_excel_automation.py --client "ABC Traders"
 
 ---
 
