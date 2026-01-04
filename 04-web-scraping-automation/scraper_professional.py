@@ -19,7 +19,7 @@ import shutil  # ✅ MOVED TO TOP
 
 # FIX THE PATH - Go up TWO levels to find automation_utils.py
 ROOT_DIR = os.path.abspath(
-    os.path.join(os.path.dirname(__file__), '..', '..')
+    os.path.join(os.path.dirname(__file__), '..')
 )
 sys.path.insert(0, ROOT_DIR)
 
@@ -41,7 +41,8 @@ from config import (
     BASE_URL,
     NUM_PAGES,
     OUTPUT_FILE,
-    LOG_FILE
+    LOG_FILE, 
+    HEADERS
 )
 
 
@@ -57,8 +58,8 @@ def scrape_single_page(url):
     """
     try:
         print(f"📄 Scraping: {url}")
-        response = requests.get(url, timeout=10)
         response.raise_for_status()
+        response = requests.get(url, headers=HEADERS, timeout=10)
         
         soup = BeautifulSoup(response.content, 'html.parser')
         

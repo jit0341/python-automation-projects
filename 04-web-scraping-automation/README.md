@@ -63,6 +63,9 @@ This automation script:
 ✔️ Configurable via `config.py`  
 
 ---
+🧠 Note:
+This repository contains both learning experiments and a production-ready scraper.
+Clients should refer to `scraper_professional.py` as the final implementation.
 
 ## 📁 Project Structure
 
