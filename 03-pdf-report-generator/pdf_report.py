@@ -1,7 +1,17 @@
-# ============================
-# STEP 0: IMPORTS
-# ============================
-# ReportLab for PDF creation
+"""
+====================================================
+PDF SALES REPORT GENERATOR
+Author  : Jitendra Bharti
+Purpose : Convert CSV sales data into a professional
+          PDF summary report with totals.
+====================================================
+"""
+
+# ==================================================
+# STEP 0: IMPORT REQUIRED LIBRARIES
+# ==================================================
+
+# PDF generation
 from reportlab.lib.pagesizes import A4
 from reportlab.pdfgen import canvas
 
@@ -11,134 +21,201 @@ import csv
 # File & directory handling
 import os
 
+# Command-line arguments (client-ready feature)
+import argparse
 
-# ============================
-# STEP 1: INPUT & CONFIGURATION
-# ============================
-# Input CSV file (data source)
-input_file = "data/sales_summary.csv"
-
-# Output PDF file (final report)
-output_file = "output/sales_report.pdf"
+# Logging for audit & debugging
+import logging
 
 
-# ============================
-# STEP 2: MAIN FUNCTION
-# ============================
+# ==================================================
+# STEP 1: LOGGING CONFIGURATION
+# ==================================================
+
+logging.basicConfig(
+    filename="report.log",
+    level=logging.INFO,
+    format="%(asctime)s | %(levelname)s | %(message)s"
+)
+
+
+# ==================================================
+# STEP 2: COMMAND-LINE ARGUMENT PARSER
+# ==================================================
+
+def parse_arguments():
+    """
+    Allows client or user to customize:
+    - Input CSV file
+    - Output PDF path
+    - Report title
+    """
+    parser = argparse.ArgumentParser(
+        description="Generate PDF sales report from CSV file"
+    )
+
+    parser.add_argument(
+        "--input",
+        default="data/sales_summary.csv",
+        help="Path to input CSV file"
+    )
+
+    parser.add_argument(
+        "--output",
+        default="output/sales_report.pdf",
+        help="Path to output PDF file"
+    )
+
+    parser.add_argument(
+        "--title",
+        default="Sales Summary Report",
+        help="PDF report title"
+    )
+
+    return parser.parse_args()
+
+
+# ==================================================
+# STEP 3: HELPER FUNCTIONS
+# ==================================================
+
+def format_currency(amount):
+    """
+    Convert numeric value into Indian currency format.
+    Example: 250000 -> ₹250,000
+    """
+    return f"₹{amount:,.0f}"
+
+
+def draw_table_header(pdf, y_position):
+    """
+    Draw table column headers on PDF.
+    Reused on every new page.
+    """
+    pdf.setFont("Helvetica-Bold", 12)
+    pdf.drawString(50, y_position, "Product")
+    pdf.drawString(220, y_position, "Quantity")
+    pdf.drawString(330, y_position, "Revenue")
+
+
+# ==================================================
+# STEP 4: MAIN PDF GENERATION FUNCTION
+# ==================================================
+
 def generate_pdf_report():
     """
-    Generates a PDF sales report from CSV data.
-    Steps:
-    - Validate input file
-    - Create PDF canvas
-    - Read CSV data
-    - Write data to PDF
-    - Generate summary
-    - Save PDF
+    Core automation logic:
+    1. Validate input
+    2. Create PDF
+    3. Read CSV
+    4. Write rows
+    5. Apply business logic
+    6. Save final PDF
     """
 
-    # ----------------------------
-    # STEP 2.1: INPUT VALIDATION
-    # ----------------------------
-    # Check if CSV file exists
+    # -------------------------------
+    # STEP 4.1: READ ARGUMENTS
+    # -------------------------------
+    args = parse_arguments()
+    input_file = args.input
+    output_file = args.output
+    report_title = args.title
+
+    logging.info("PDF automation started")
+
+    # -------------------------------
+    # STEP 4.2: INPUT VALIDATION
+    # -------------------------------
     if not os.path.exists(input_file):
-        print("❌ CSV file not found.")
+        logging.error("Input CSV file not found")
+        print("❌ CSV file not found")
         return
 
     # Ensure output directory exists
     os.makedirs(os.path.dirname(output_file), exist_ok=True)
 
-    # If PDF already exists, delete it (safe re-run)
-    if os.path.exists(output_file):
-        os.remove(output_file)
-
-
-    # ----------------------------
-    # STEP 3: PDF SETUP
-    # ----------------------------
-    # Create PDF canvas
-    c = canvas.Canvas(output_file, pagesize=A4)
-
-    # Page width and height
+    # -------------------------------
+    # STEP 4.3: CREATE PDF CANVAS
+    # -------------------------------
+    pdf = canvas.Canvas(output_file, pagesize=A4)
     width, height = A4
 
+    # -------------------------------
+    # STEP 4.4: DRAW REPORT TITLE
+    # -------------------------------
+    pdf.setFont("Helvetica-Bold", 18)
+    pdf.drawString(50, height - 50, report_title)
 
-    # ----------------------------
-    # STEP 4: REPORT HEADER
-    # ----------------------------
-    # Set font for title
-    c.setFont("Helvetica-Bold", 18)
-
-    # Draw report title
-    c.drawString(50, height - 50, "Sales Summary Report")
-
-    # Table header font
-    c.setFont("Helvetica-Bold", 12)
-
-    # Y-position for table header
+    # -------------------------------
+    # STEP 4.5: DRAW TABLE HEADER
+    # -------------------------------
     y = height - 100
+    draw_table_header(pdf, y)
+    y -= 25
 
-    # Column headers
-    c.drawString(50, y, "Product")
-    c.drawString(200, y, "Quantity")
-    c.drawString(300, y, "Revenue")
+    pdf.setFont("Helvetica", 10)
 
-
-    # ----------------------------
-    # STEP 5: DATA PROCESSING
-    # ----------------------------
-    # Initialize total revenue
+    # -------------------------------
+    # STEP 4.6: PROCESS CSV DATA
+    # -------------------------------
     total_revenue = 0
 
-    # Start data rows below header
-    y = height - 120
+    with open(input_file, newline="") as csv_file:
+        reader = csv.DictReader(csv_file)
 
-    # Set normal font for rows
-    c.setFont("Helvetica", 10)
-
-    # Open CSV file
-    with open(input_file, newline="") as file:
-        reader = csv.DictReader(file)
-
-        # Loop through each CSV row
         for row in reader:
-            # Write row data to PDF
-            c.drawString(50, y, row["Product"])
-            c.drawString(200, y, row["Quantity"])
-            c.drawString(300, y, row["Revenue"])
+            try:
+                product = row["Product"]
+                quantity = row["Quantity"]
+                revenue = int(float(row["Revenue"]))
 
-            # Business logic: calculate total revenue
-            revenue = row.get("Revenue", "0")
-            if revenue.isdigit():
-                total_revenue += int(revenue)
+                # Write row to PDF
+                pdf.drawString(50, y, product)
+                pdf.drawString(220, y, str(quantity))
+                pdf.drawString(330, y, format_currency(revenue))
 
-            # Move to next line
-            y -= 20
+                total_revenue += revenue
+                y -= 20
 
-            # Handle page overflow
-            if y < 50:
-                c.showPage()
-                c.setFont("Helvetica", 10)
-                y = height - 50
+                # -------------------------------
+                # STEP 4.7: HANDLE PAGE OVERFLOW
+                # -------------------------------
+                if y < 60:
+                    pdf.showPage()
+                    pdf.setFont("Helvetica-Bold", 18)
+                    pdf.drawString(50, height - 50, report_title)
 
+                    y = height - 100
+                    draw_table_header(pdf, y)
+                    y -= 25
+                    pdf.setFont("Helvetica", 10)
 
-    # ----------------------------
-    # STEP 6: SUMMARY & FINAL SAVE
-    # ----------------------------
-    # Summary section
-    c.setFont("Helvetica-Bold", 12)
-    c.drawString(50, y - 20, f"Total Revenue: INR {total_revenue}")
+            except Exception as e:
+                logging.warning(f"Skipped invalid row: {row} | {e}")
 
-    # Save the PDF (MOST IMPORTANT STEP)
-    c.save()
+    # -------------------------------
+    # STEP 4.8: SUMMARY SECTION
+    # -------------------------------
+    pdf.setFont("Helvetica-Bold", 12)
+    pdf.drawString(
+        50,
+        y - 20,
+        f"Total Revenue: {format_currency(total_revenue)}"
+    )
 
-    # Success message
+    # -------------------------------
+    # STEP 4.9: SAVE PDF
+    # -------------------------------
+    pdf.save()
+
+    logging.info(f"PDF generated successfully: {output_file}")
     print(f"✅ PDF generated successfully: {output_file}")
 
 
-# ============================
-# PROGRAM ENTRY POINT
-# ============================
+# ==================================================
+# STEP 5: PROGRAM ENTRY POINT
+# ==================================================
+
 if __name__ == "__main__":
-    print("---- Generating PDF report ----")
+    print("---- Generating PDF Sales Report ----")
     generate_pdf_report()
