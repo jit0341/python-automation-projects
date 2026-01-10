@@ -102,6 +102,8 @@ SQL reporting • Backend data automation • PostgreSQL client tasks
 **Used for:**  
 Sales reporting • Excel/CSV cleanup • Recurring business reports
 ---
+<img src="./screenshots/step2_bar_chart.png" alt="Bar Chart" width="600">
+<img src="./screenshots/step2_pie_chart.png" alt="Pie Chart" width="600">
 ## 📌 How This Portfolio Is Used
 
 These projects are actively used in:
