@@ -1,9 +1,15 @@
-# 🐍 Python Automation Projects — Freelance Portfolio
+🐍 Python Automation Projects — Freelance Portfolio
 
-A curated collection of **client-ready Python automation projects** focused on
-data collection, cleaning, processing, and reporting.
+I build **production-ready Python automation solutions** that replace manual work with reliable scripts.
 
-This repository represents **real-world automation workflows**, not practice scripts.
+This portfolio showcases **real client-style workflows** — data cleaning, SQL reporting, business automation, and repeatable report generation.
+
+Every project here is:
+• business-focused  
+• execution-proven  
+• structured for client delivery  
+
+These are **not practice scripts**, but automation pipelines I use in freelance proposals and client demos.
 
 ---
 
@@ -24,12 +30,12 @@ All projects are designed with **clarity, reusability, and client delivery** in 
 
 | # | Project | Description | Typical Client Use |
 |---|--------|-------------|-------------------|
-| 01 | Folder & File Organiser | Automatically sorts mixed files into structured folders | Office file management, document cleanup |
-| 02 | CSV to Excel Automation | Cleans raw CSV data and converts it into professional Excel reports | Data entry, accounting, sales reports |
-| 03 | PDF Report Generator | Generates clean, formatted PDF reports from structured data | Invoices, summaries, client reports |
-| 04 | Web Scraping Automation | Extracts structured data from websites into CSV / Excel | Lead generation, research, price tracking |
-| 06 | SQL Database Automation (SQLite + PostgreSQL) | Business-focused SQL reporting with Python automation | Customer-order analysis, reporting pipelines |
-| 07 | Business Report Automation (Sales Data) | End-to-end sales data cleaning, summaries & visual reports | Management reporting, recurring insights |
+| 01 | [Folder & File Organiser](./01-folder-file-organiser) | Automatically sorts mixed files into structured folders | Office file management, document cleanup |
+| 02 | [CSV to Excel Automation](./02-csv-to-excel-automation) | Cleans raw CSV data and converts it into professional Excel reports | Data entry, accounting, sales reports |
+| 03 | [PDF Report Generator](./03-pdf-report-generator) | Generates clean, formatted PDF reports from structured data | Invoices, summaries, client reports |
+| 04 | [Web Scraping Automation](./04-web-scraping-automation) | Extracts structured data from websites into CSV / Excel | Lead generation, research, price tracking |
+| 06 | [SQL Database Automation (SQLite + PostgreSQL)](./06_sql_database_automation) | Business-focused SQL reporting with Python automation | Customer-order analysis, backend reporting |
+| 07 | [Business Report Automation (Sales Data)](./07_business_report_automation) | End-to-end sales data cleaning, summaries & visual reports | Management reporting, recurring insights |
 
 ---
 > These projects are actively used as **live samples in freelance proposals**.
@@ -83,7 +89,8 @@ SQL reporting • Backend data automation • PostgreSQL client tasks
 - Automated sales summaries  
 - Country-wise insights  
 - Bar & pie chart generation  
-- Client-ready CSV & image outputs  
+- Client-ready CSV & image outputs  | 06 ⭐ | [SQL Database Automation (SQLite + PostgreSQL)](./06_sql_database_automation) | ...
+| 07 ⭐ | [Business Report Automation (Sales Data)](./07_business_report_automation) | ...
 
 **Used for:**  
 Sales reporting • Excel/CSV cleanup • Recurring business reports
