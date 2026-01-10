@@ -1,0 +1,6 @@
+order_id,customer,country,amount,status,date
+1001,Alfreds,Germany,250,Delivered,2024-12-01
+1002,Ana Trujillo,Mexico,180,Pending,2024-12-02
+1003,Antonio Moreno,Mexico,320,Delivered,2024-12-02
+1004,Berglunds,Sweden,150,Delivered,2024-12-03
+1006,Alfreds,Germany,400,Delivered,2024-12-04
