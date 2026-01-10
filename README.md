@@ -89,8 +89,15 @@ SQL reporting • Backend data automation • PostgreSQL client tasks
 - Automated sales summaries  
 - Country-wise insights  
 - Bar & pie chart generation  
-- Client-ready CSV & image outputs  | 06 ⭐ | [SQL Database Automation (SQLite + PostgreSQL)](./06_sql_database_automation) | ...
-| 07 ⭐ | [Business Report Automation (Sales Data)](./07_business_report_automation) | ...
+- Client-ready CSV & image outputs
+
+- ## 📊 Charts Preview
+
+### Bar Chart – Country-wise Sales
+![Bar Chart](./screenshots/step2_bar_chart.png)
+
+### Pie Chart – Sales Share
+![Pie Chart](./screenshots/step2_pie_chart.png)
 
 **Used for:**  
 Sales reporting • Excel/CSV cleanup • Recurring business reports
