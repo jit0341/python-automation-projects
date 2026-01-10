@@ -91,13 +91,13 @@ SQL reporting • Backend data automation • PostgreSQL client tasks
 - Bar & pie chart generation  
 - Client-ready CSV & image outputs
 
-- ## 📊 Charts Preview
+## 📊 Charts Preview
 
 ### Bar Chart – Country-wise Sales
-![Bar Chart](screenshots/step2_bar_chart.png)
+![Bar Chart](./screenshots/step2_bar_chart.png)
 
 ### Pie Chart – Sales Share
-![Pie Chart](screenshots/step2_pie_chart.png)
+![Pie Chart](./screenshots/step2_pie_chart.png)
 
 **Used for:**  
 Sales reporting • Excel/CSV cleanup • Recurring business reports
