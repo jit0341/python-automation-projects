@@ -109,18 +109,27 @@ Country-wise breakdown
 📁 Project Structure
 
 07_business_report_automation/
-├── data/
+.
+├── README.md
+├── data
 │   └── sales_data.csv
-├── scripts/
-│   ├── load_and_clean.py
-│   └── sales_summary.py
-├── reports/
+├── reports
 │   ├── clean_sales_data.csv
-│   └── country_sales_summary.csv
-├── screenshots/
+│   ├── country_sales_summary.csv
+│   ├── sales_by_country_bar.png
+│   └── sales_share_pie.png
+├── screenshots
 │   ├── step1_cleaning.png
-│   └── step1_summary.png
-└── README.md
+│   ├── step1_summary.png
+│   ├── step2_bar_chart.png
+│   ├── step2_charts_terminal.png
+│   └── step2_pie_chart.png
+└── scripts
+    ├── load_and_clean.py
+    ├── sales_charts.py
+    └── sales_summary.py
+
+5 directories, 14 files
 
 
 ---
