@@ -90,7 +90,7 @@ SQL reporting • Backend data automation • PostgreSQL client tasks
 - Country-wise insights  
 - Bar & pie chart generation  
 - Client-ready CSV & image outputs
-
+```
 - ## 📊 Charts Preview
 
 ### Bar Chart – Country-wise Sales
