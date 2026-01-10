@@ -20,34 +20,17 @@ reliable Python automation solutions for:
 All projects are designed with **clarity, reusability, and client delivery** in mind.
 
 ---
-
 ## 📁 Featured Automation Projects
 
-#  Project  Description  Typical Client Use
+| # | Project | Description | Typical Client Use |
+|---|--------|-------------|-------------------|
+| 01 | Folder & File Organiser | Automatically sorts mixed files into structured folders | Office file management, document cleanup |
+| 02 | CSV to Excel Automation | Cleans raw CSV data and converts it into professional Excel reports | Data entry, accounting, sales reports |
+| 03 | PDF Report Generator | Generates clean, formatted PDF reports from structured data | Invoices, summaries, client reports |
+| 04 | Web Scraping Automation | Extracts structured data from websites into CSV / Excel | Lead generation, research, price tracking |
+| 06 | SQL Database Automation (SQLite + PostgreSQL) | Business-focused SQL reporting with Python automation | Customer-order analysis, reporting pipelines |
+| 07 | Business Report Automation (Sales Data) | End-to-end sales data cleaning, summaries & visual reports | Management reporting, recurring insights |
 
-01  Folder & File Organiser  
-Automatically sorts mixed files into structured folders  
-Office file management, document cleanup
-
-02  CSV to Excel Automation  
-Cleans raw CSV data and converts it into professional Excel reports  
-Data entry, accounting, sales reports
-
-03  PDF Report Generator  
-Generates clean, formatted PDF reports from structured data  
-Invoices, summaries, client reports
-
-04  Web Scraping Automation  
-Extracts structured data from websites into CSV/Excel  
-Lead generation, research, price tracking
-
-06  SQL Database Automation (SQLite + PostgreSQL)  
-Business-focused SQL reporting with Python automation  
-Customer-order analysis, reporting pipelines, backend data tasks
-
-07  Business Report Automation (Sales Data)  
-End-to-end sales data cleaning, summaries & visual reports  
-Management reporting, recurring business insights
 ---
 > These projects are actively used as **live samples in freelance proposals**.
 
@@ -68,33 +51,7 @@ Each project includes:
 - Git & GitHub (clean, lightweight repositories)
 
 ---
-## 🆕 Recent Production-Style Projects
 
-### 🔹 SQL Database Automation (Project-06)
-- SQLite + PostgreSQL
-- Business-oriented JOIN queries
-- Python-based reporting automation
-- Client-verifiable screenshots
-- Production-style folder structure
-
-Used for:
-• SQL reporting tasks  
-• Backend data automation  
-• PostgreSQL-based client projects  
-
----
-
-### 🔹 Business Sales Report Automation (Project-07)
-- Raw CSV data cleaning
-- Automated sales summaries
-- Country-wise insights
-- Bar & pie chart generation
-- Client-ready CSV & image outputs
-
-Used for:
-• Sales reporting automation  
-• Excel/CSV cleanup jobs  
-• Recurring business reports
 ---
 ## 💼 Why Hire Me
 
@@ -107,7 +64,30 @@ I approach every task with:
 **clarity • reliability • professionalism**
 
 ---
+## 🆕 Recent Production-Style Projects
 
+### Project-06: SQL Database Automation
+- SQLite & PostgreSQL support  
+- Business-oriented JOIN & aggregation queries  
+- Python-based reporting automation  
+- Client-verifiable screenshots  
+- Production-style folder structure  
+
+**Used for:**  
+SQL reporting • Backend data automation • PostgreSQL client tasks  
+
+---
+
+### Project-07: Business Sales Report Automation
+- Raw CSV data cleaning  
+- Automated sales summaries  
+- Country-wise insights  
+- Bar & pie chart generation  
+- Client-ready CSV & image outputs  
+
+**Used for:**  
+Sales reporting • Excel/CSV cleanup • Recurring business reports
+---
 ## 📌 How This Portfolio Is Used
 
 These projects are actively used in:
