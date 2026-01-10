@@ -1,147 +1,108 @@
 
----
+# 📊 SQL Database Automation – Customer & Orders Reporting
 
-📊 SQL Database Automation – Customer & Orders Reporting
+## 🔍 Project Overview
 
-🔍 Project Overview
+This project demonstrates **production-style SQL database automation** using Python.
 
-This project demonstrates end-to-end SQL database handling and reporting automation using Python.
+It simulates a real-world business scenario where **customer and order data** must be queried, analyzed, and converted into **client-ready reports** — without manual SQL work.
 
-The focus is on:
-
-Designing and querying relational databases
-
-Performing SQL JOIN operations for business insights
-
-Automating data extraction, analysis, and report generation
-
-Working with both SQLite and PostgreSQL
-
-
-This project simulates a real-world client scenario where customer and order data must be analyzed and converted into meaningful reports.
-
+The project is intentionally designed to be:
+- Freelancing-ready
+- Client-verifiable
+- Business-focused (not just SQL syntax)
 
 ---
 
-🧠 Business Problem Simulated
+## 🧠 Business Problem Simulated
 
 A business wants to:
 
-Track customers and their orders
-
-Identify customers without orders
-
-Analyze order status (delivered vs pending)
-
-Generate country-wise customer reports
-
-Automate reports using Python instead of manual SQL work
-
-
+- Track customers and their orders
+- Identify customers without orders
+- Analyze order status (delivered vs pending)
+- Generate country-wise order insights
+- Automate reports using Python instead of manual queries
 
 ---
 
-🗄️ Database Structure
+## 🗄️ Database Design
 
-Tables Used
+### Tables Used
 
-customers
+**customers**
+- customer_id (PK)
+- customer_name
+- country
 
-customer_id
+**orders**
+- order_id (PK)
+- customer_id (FK)
+- status
+- order_date
 
-customer_name
-
-country
-
-
-orders
-
-order_id
-
-customer_id
-
-status
-
-
-Relational link:
+🔗 Relationship:
 
 customers.customer_id → orders.customer_id
 
+---
+
+## 🔗 SQL Concepts Demonstrated
+
+- INNER JOIN
+- LEFT JOIN
+- RIGHT JOIN (simulated)
+- FULL OUTER JOIN
+- GROUP BY + COUNT
+- HAVING clause
+- Business-oriented reporting queries
+
+📌 All JOIN outputs are captured as screenshots for proof.
 
 ---
 
-🔗 SQL Concepts Demonstrated
-
-INNER JOIN
-
-LEFT JOIN
-
-RIGHT JOIN (simulated)
-
-FULL OUTER JOIN (using UNION)
-
-Filtering with WHERE
-
-Aggregation with COUNT
-
-Business-focused queries (not just syntax)
-
-
-All JOIN outputs are captured as screenshots for proof.
-
-
----
-
-⚙️ Automation with Python
+## ⚙️ Automation with Python
 
 Python scripts automate:
 
-Connecting to SQLite / PostgreSQL databases
-
-Running SQL queries
-
-Generating CSV reports
-
-Preparing data for visualization or email delivery
-
-
+- PostgreSQL / SQLite database connections
+- SQL execution via psycopg2
+- Terminal-based reports
+- CSV report generation (client-ready)
 
 ---
 
-📁 Project Structure
+## 📁 Project Structure
 
-06_sql_database_automation/
-├── README.md
-├── data/
-│   └── customers.db
-├── scripts/
-│   ├── customer_report_automation.py
-│   ├── generate_country_report.py
-│   ├── generate_country_report_pg.py
-│   └── postgres_customer_report.py
-├── reports/
-├── screenshots/
-│   ├── join proofs
-│   ├── customers without orders
-│   ├── order status analysis
-│   └── terminal output
-└── screenshots.md
-
+06_sql_database_automation/ ├── README.md ├── data/ │   └── customers.db ├── scripts/ │   ├── terminal_customer_order_report.py │   ├── customer_order_report_csv.py │   ├── cte_customer_order_summary.py │   ├── postgres_customer_report.py │   └── test_pg_connection.py ├── reports/ │   └── customer_order_summary.csv ├── screenshots/ │   ├── terminal_customer_order_report.png │   ├── csv_report_preview.png │   └── join_results_proofs.png └── screenshots.md
 
 ---
 
-🖼️ Screenshots & Proof
+## 🖼️ Screenshots & Proof
 
-The screenshots/ folder contains:
+All SQL results and automation outputs are documented visually.
 
-SQL JOIN results
+See full index here 👉 **[screenshots.md](screenshots.md)**
 
-Business queries output
+Examples:
+- Terminal execution proof
+- CSV report preview
+- JOIN results
+- Customers without orders
+- Order status analysis
 
-Terminal execution proof
+---
 
+## 🚀 How to Run
 
-This ensures transparent verification of results, useful for clients and reviewers.
+1. Clone the repository
+2. Navigate to the project folder
+3. Ensure Python & PostgreSQL are installed
+4. Run scripts:
+
+```bash
+python scripts/terminal_customer_order_report.py
+python scripts/customer_order_report_csv.py
 
 
 ---
@@ -150,33 +111,15 @@ This ensures transparent verification of results, useful for clients and reviewe
 
 Python 3
 
-SQLite
-
 PostgreSQL
+
+SQLite
 
 SQL
 
-CSV Reporting
+psycopg2
 
-
-
----
-
-🚀 How to Run
-
-1. Clone the repository
-
-
-2. Navigate to the project folder
-
-
-3. Ensure Python is installed
-
-
-4. Run any script from scripts/:
-
-python generate_country_report.py
-
+CSV reporting
 
 
 
@@ -186,13 +129,13 @@ python generate_country_report.py
 
 Strong understanding of relational databases
 
-Ability to write business-oriented SQL queries
+Practical JOIN usage (business-driven)
 
-Practical experience with JOINs
+PostgreSQL production usage
 
-Skill in Python-based database automation
+Python-based SQL automation
 
-Client-ready reporting mindset
+Freelancing & client-report mindset
 
 
 
@@ -204,6 +147,4 @@ Jitendra Bharti
 Python | SQL | Automation
 Focused on practical, freelance-ready solutions.
 
-
 ---
-
