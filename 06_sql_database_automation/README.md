@@ -143,7 +143,7 @@ This mirrors real freelance and production workflows, where SQL runs are automat
 
 All SQL queries and automation outputs are documented visually for transparency and client verification.
 
-📌 Full screenshot index available here → screenshots.md](screenshots.md)
+📌 Full screenshot index available here → ![screenshots.md](screenshots.md)
 
 Included proofs:
 
