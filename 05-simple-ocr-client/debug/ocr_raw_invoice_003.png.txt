@@ -1,0 +1,25 @@
+INVOICE
+
+Invoice No.: INV-1023 12-03-2024
+
+Invoice Date: 12-03-2024
+
+Supplier: Bill To:
+ABC Traders Pvt Ltd XYZ Industries
+GSTIN: 09ABCDE1234F1Z5 GSTIN: 27PQRSX5678L1ZZ
+
+Place of Supply: Maharashtra
+Item:
+Item HSN Qty Rate | Taxable Value
+8471 2| 25,000 50,000
+
+CGST @9% 4,500
+SGST @9% 4,500
+
+Total Invoice Value : 59,000
+
+Rs. 59,000
+
+CGST @9% Rs. 4,500
+SGST @9% Rs. 4,500
+Total Invoice Value: 59,000

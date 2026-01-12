@@ -1,0 +1,32 @@
+DELIVERY NOTE
+
+DN-2024-002
+
+Date: 29-12-2024
+
+Supplier: XYZ Industries
+
+GSTIN: 09ABCDE12334F12JZ79
+
+e
+IGST: 16,200
+Total: 106,200
+
+invoice_002.png
+
+DELIVERY NOTE
+
+DN-2024-002
+Date: 29-12-2024
+
+Supplier: XYZ Industries
+GSTIN: 09ABCDE12334F12JZ79
+
+ITEM CODE | DESCRIPTION | QTY | AMOUNT
+
+PROD101 Component X 90 90,000
+
+IGST: 16,200
+Total: 106,200
+
+invoice_002.png
