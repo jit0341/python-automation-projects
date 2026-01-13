@@ -1,165 +1,217 @@
 """
-GST PREMIUM OCR AUTOMATION
+ADVANCED GST OCR – PREMIUM VERSION
 Author: Jitendra
-Client Ready – CA / GST Firm Edition
+Purpose: CA / GST Consultants
 """
 
-import pytesseract
-import cv2
-import re
 import os
+import re
 import json
+import pytesseract
 import pandas as pd
 from PIL import Image
-from datetime import datetime
 
-# ==============================
+# =========================
 # CONFIG
-# ==============================
-
+# =========================
 IMAGES_DIR = "images"
-OUTPUT_EXCEL = "output/invoices_gst_ready.xlsx"
-OUTPUT_JSON = "output/gstr1_output.json"
-DEBUG_DIR = "debug"
-HSN_GST_MAP = "config/hsn_gst_mapping.csv"
+OUTPUT_DIR = "output"
+OUTPUT_EXCEL = os.path.join(OUTPUT_DIR, "invoices_gst_ready.xlsx")
+OUTPUT_JSON = os.path.join(OUTPUT_DIR, "gstr1_output.json")
+HSN_GST_FILE = "hsn_gst_rates.csv"
 
-os.makedirs("output", exist_ok=True)
-os.makedirs(DEBUG_DIR, exist_ok=True)
+os.makedirs(OUTPUT_DIR, exist_ok=True)
 
-# ==============================
-# LOAD HSN → GST RATE
-# ==============================
-
-hsn_df = pd.read_csv(HSN_GST_MAP)
-HSN_RATE = dict(zip(hsn_df["HSN"], hsn_df["GST_RATE"]))
-
-# ==============================
-# OCR ENGINE (MULTI PASS)
-# ==============================
-
-def ocr_multi_pass(image_path):
-    img = cv2.imread(image_path)
-    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-
-    text_psm6 = pytesseract.image_to_string(gray, config="--psm 6")
-    text_psm4 = pytesseract.image_to_string(gray, config="--psm 4")
-
-    return text_psm6 + "\n" + text_psm4
-
-# ==============================
-# REGEX EXTRACTORS
-# ==============================
-
+# =========================
+# UTILS
+# =========================
 def extract(pattern, text):
     m = re.search(pattern, text, re.IGNORECASE)
-    return m.group(0).strip() if m else "NOT FOUND"
+    return m.group(1).strip() if m and m.groups() else "NOT FOUND"
 
-# ==============================
-# CONFIDENCE ENGINE
-# ==============================
+def safe_int(val, default=0):
+    try:
+        return int(val)
+    except:
+        return default
 
-def confidence_score(data):
-    score = 0
-    weights = {
-        "Invoice Number": 15,
-        "Invoice Date": 10,
-        "Supplier GSTIN": 20,
-        "Buyer GSTIN": 20,
-        "Taxable Value": 20,
-        "Total Invoice Value": 15
-    }
-    for k, w in weights.items():
-        if data.get(k) not in ["", "NOT FOUND", 0]:
-            score += w
-    return score
+def safe_float(val, default=0.0):
+    try:
+        return float(val)
+    except:
+        return default
 
-# ==============================
-# MAIN EXTRACTION
-# ==============================
+# =========================
+# LOAD HSN → GST MAP
+# =========================
+def load_hsn_map():
+    if not os.path.exists(HSN_GST_FILE):
+        return {}
 
+    df = pd.read_csv(HSN_GST_FILE)
+    df.columns = df.columns.str.strip().str.upper()
+
+    if "HSN" not in df.columns or "GST_RATE" not in df.columns:
+        print("⚠️ Invalid HSN GST CSV format")
+        return {}
+
+    return dict(zip(df["HSN"].astype(str), df["GST_RATE"]))
+
+HSN_GST_MAP = load_hsn_map()
+
+# =========================
+# OCR EXTRACTION
+# =========================
+def extract_invoice(image_path, hsn_gst_map):
+    try:
+        img = Image.open(image_path)
+        text = pytesseract.image_to_string(img)
+
+        invoice_no = extract(r"Invoice\s*No[:\-]?\s*([A-Z0-9\-]+)", text)
+        invoice_date = extract(r"(\d{2}[-/]\d{2}[-/]\d{4})", text)
+
+        supplier = extract(r"Supplier[:\s]*([A-Za-z\s]+)", text)
+        supplier_gstin = extract(r"GSTIN[:\s]*([0-9A-Z]{15})", text)
+
+        buyer = extract(r"Bill\s*To[:\s]*([A-Za-z\s]+)", text)
+        buyer_gstin = extract(r"GSTIN[:\s]*([0-9A-Z]{15})", text)
+
+        place = extract(r"Place\s*of\s*Supply[:\s]*([A-Za-z\s]+)", text)
+
+        hsn = extract(r"HSN[:\s]*(\d{4})", text)
+        qty = safe_int(extract(r"Qty[:\s]*(\d+)", text), 1)
+        rate = safe_float(extract(r"Rate[:\s]*(\d+)", text), 0)
+
+        taxable = safe_float(extract(r"Taxable\s*Value[:\s]*(\d+)", text), rate * qty)
+
+        cgst = safe_float(extract(r"CGST.*?(\d+)", text))
+        sgst = safe_float(extract(r"SGST.*?(\d+)", text))
+        igst = safe_float(extract(r"IGST.*?(\d+)", text))
+
+        total = safe_float(extract(r"Total\s*Invoice\s*Value[:\s]*(\d+)", text))
+
+        gst_rate = hsn_map.get(hsn, extract(r"(\d+)%", text))
+        gst_rate = safe_int(gst_rate)
+
+        confidence = 100
+        for v in [invoice_no, supplier, hsn]:
+            if v == "NOT FOUND":
+                confidence -= 25
+
+        return {
+            "Invoice Number": invoice_no,
+            "Invoice Date": invoice_date,
+            "Supplier Name": supplier,
+            "Supplier GSTIN": supplier_gstin,
+            "Buyer Name": buyer,
+            "Buyer GSTIN": buyer_gstin,
+            "Place of Supply": place,
+            "Invoice Type": "B2B" if buyer_gstin != "NOT FOUND" else "B2C",
+            "Taxable Value": taxable,
+            "CGST": cgst,
+            "SGST": sgst,
+            "IGST": igst,
+            "Invoice Value": total,
+            "Confidence Score": confidence,
+            "Items": [{
+                "Description": "Item",
+                "HSN": hsn,
+                "Quantity": qty,
+                "Unit Price": rate,
+                "Taxable Value": taxable,
+                "GST Rate": gst_rate
+            }]
+        }
+
+    except Exception as e:
+        print(f"❌ Invoice failed: {os.path.basename(image_path)} → {e}")
+        return None
+
+# =========================
+# BUILD TALLY LINE ITEMS
+# =========================
+def build_tally_line_items(results):
+    rows = []
+    for r in results:
+        for it in r["Items"]:
+            rows.append({
+                "Invoice Number": r["Invoice Number"],
+                "Party Name": r["Buyer Name"] if r["Buyer Name"] != "NOT FOUND" else r["Supplier Name"],
+                "Stock Item": it["Description"],
+                "HSN Code": it["HSN"],
+                "Rate": it["Unit Price"],
+                "Qty": it["Quantity"],
+                "UOM": "Nos",
+                "GST Rate": it["GST Rate"],
+                "Cess": 0,
+                "Taxable Value": it["Taxable Value"]
+            })
+    return pd.DataFrame(rows)
+
+# =========================
+# MAIN RUN
+# =========================
+results = []
+
+for f in os.listdir(IMAGES_DIR):
+    if f.lower().endswith((".png", ".jpg", ".jpeg")):
+        print(f"📄 Processing: {f}")
+        data = extract_invoice(os.path.join(IMAGES_DIR, f), HSN_GST_MAP)
+        if data:
+            results.append(data)
+
+if not results:
+    print("❌ No valid invoices processed")
+    exit()
+
+# =========================
+# EXPORT
+# =========================
 summary_rows = []
 line_rows = []
-gstr1 = {"b2b": [], "b2c": []}
 
-for file in os.listdir(IMAGES_DIR):
-    if not file.lower().endswith((".png", ".jpg", ".jpeg")):
-        continue
-
-    path = os.path.join(IMAGES_DIR, file)
-    raw_text = ocr_multi_pass(path)
-
-    with open(f"{DEBUG_DIR}/{file}_raw.txt", "w") as f:
-        f.write(raw_text)
-
-    invoice_no = extract(r'INV[-\s]?\d+', raw_text)
-    invoice_date = extract(r'\d{2}[-/]\d{2}[-/]\d{4}', raw_text)
-
-    supplier_gstin = extract(r'GSTIN[:\s]*([0-9A-Z]{15})', raw_text)
-    buyer_gstin = extract(r'Bill To.*?GSTIN[:\s]*([0-9A-Z]{15})', raw_text)
-
-    place = extract(r'Place of Supply[:\s]*([A-Za-z]+)', raw_text)
-    hsn = extract(r'HSN[:\s]*(\d{4})', raw_text)
-
-    qty = extract(r'Qty[:\s]*(\d+)', raw_text)
-    rate = extract(r'Rate[:\s]*(\d+)', raw_text)
-    taxable = extract(r'Taxable Value[:\s]*(\d+)', raw_text)
-
-    cgst = extract(r'CGST.*?(\d+)', raw_text)
-    sgst = extract(r'SGST.*?(\d+)', raw_text)
-    igst = extract(r'IGST.*?(\d+)', raw_text)
-
-    total = extract(r'Total Invoice Value[:\s]*(\d+)', raw_text)
-
-    gst_rate = HSN_RATE.get(hsn, "")
-
-    invoice_type = "B2B" if buyer_gstin != "NOT FOUND" else "B2C"
-
-    summary = {
-        "Invoice Number": invoice_no,
-        "Invoice Date": invoice_date,
-        "Supplier GSTIN": supplier_gstin,
-        "Buyer GSTIN": buyer_gstin,
-        "Place of Supply": place,
-        "Invoice Type": invoice_type,
-        "Taxable Value": int(taxable) if taxable.isdigit() else 0,
-        "CGST Amount": int(cgst) if cgst.isdigit() else 0,
-        "SGST Amount": int(sgst) if sgst.isdigit() else 0,
-        "IGST Amount": int(igst) if igst.isdigit() else 0,
-        "Total Invoice Value": int(total) if total.isdigit() else 0
-    }
-
-    score = confidence_score(summary)
-    summary["Confidence Score"] = score
-    summary["Review Status"] = "AUTO OK" if score >= 90 else "NEEDS REVIEW"
-
-    summary_rows.append(summary)
-
-    line_rows.append({
-        "Invoice Number": invoice_no,
-        "HSN": hsn,
-        "Quantity": qty,
-        "Rate": rate,
-        "Taxable Value": taxable,
-        "GST Rate %": gst_rate
+for r in results:
+    summary_rows.append({
+        "Invoice Number": r["Invoice Number"],
+        "Invoice Date": r["Invoice Date"],
+        "Supplier GSTIN": r["Supplier GSTIN"],
+        "Buyer GSTIN": r["Buyer GSTIN"],
+        "Place of Supply": r["Place of Supply"],
+        "Invoice Type": r["Invoice Type"],
+        "Taxable Value": r["Taxable Value"],
+        "CGST": r["CGST"],
+        "SGST": r["SGST"],
+        "IGST": r["IGST"],
+        "Invoice Value": r["Invoice Value"],
+        "Confidence Score": r["Confidence Score"]
     })
 
-    # GSTR-1 JSON
-    if invoice_type == "B2B":
-        gstr1["b2b"].append(summary)
-    else:
-        gstr1["b2c"].append(summary)
+    for it in r["Items"]:
+        line_rows.append({
+            "Invoice Number": r["Invoice Number"],
+            "Description": it["Description"],
+            "HSN": it["HSN"],
+            "Qty": it["Quantity"],
+            "Rate": it["Unit Price"],
+            "GST Rate": it["GST Rate"],
+            "Taxable Value": it["Taxable Value"]
+        })
 
-# ==============================
-# EXPORT
-# ==============================
+df_summary = pd.DataFrame(summary_rows)
+df_lines = pd.DataFrame(line_rows)
+df_tally = build_tally_line_items(results)
 
-with pd.ExcelWriter(OUTPUT_EXCEL, engine="openpyxl") as w:
-    pd.DataFrame(summary_rows).to_excel(w, sheet_name="Invoices_Summary", index=False)
-    pd.DataFrame(line_rows).to_excel(w, sheet_name="Invoice_Line_Items", index=False)
+with pd.ExcelWriter(OUTPUT_EXCEL, engine="openpyxl") as writer:
+    df_summary.to_excel(writer, sheet_name="Invoices_Summary", index=False)
+    df_lines.to_excel(writer, sheet_name="Invoice_Line_Items", index=False)
+    df_tally.to_excel(writer, sheet_name="Tally_Line_Items", index=False)
 
+# =========================
+# GSTR-1 JSON (BASIC)
+# =========================
 with open(OUTPUT_JSON, "w") as f:
-    json.dump(gstr1, f, indent=2)
+    json.dump(results, f, indent=2)
 
-print("✅ PREMIUM GST OCR COMPLETED")
-print("📊 Excel:", OUTPUT_EXCEL)
-print("🧾 GSTR-1 JSON:", OUTPUT_JSON)
+print("\n✅ PREMIUM GST OCR COMPLETED")
+print(f"📊 Excel: {OUTPUT_EXCEL}")
+print(f"📄 GSTR-1 JSON: {OUTPUT_JSON}")

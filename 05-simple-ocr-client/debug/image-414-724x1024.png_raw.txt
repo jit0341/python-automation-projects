@@ -1,0 +1,72 @@
+Invoice paTe Invorc No. PLACE OF sUPPLY
+October 10,2020 CT000000001 Gujarat
+st o aiL From
+Baxter & Stockman Shredding Ninja Turtle Industries
+Makvane Lane, Mathuradas Vasanji Gala No § 8.2nd I, Shelay Industrial
+Road, Marol Naka, Andheri(e) Estate, Udyog Nagar, Goregaon (w)
+Contact No: 9046584736 GSTIN: 24AADCPI4SICIZZ
+GSTIN No: 24AADCPI4SIAZZ
+suppLy TYPE copE DocuMENT TYPE copE an cove
+EXPWP EXPWP SRR
+RN o G RS SR
+B20685692CT61645478453CTbS3eSTC R
+47664c50480033a3a5b6<I37dB17 R R
+o iTEm NamE QTY  pRICE/ DiscounT/  GST  AMOUNT
+i i
+1 Back-end services 80hrs 3200000 2000 2000 %80,000.00
+2 AWS Maintenance and set-up 40hrs 2200000 2000 2000 40,000.00
+SUBTOTAL 212000000
+ast 2000
+TOTALDUE  ¥1,20,000.00
+uei 1 sicnaTURE
+manan321@ybl Z
+custom FiED (& =
+Custom field info
+custom FiELD s cusTom FiELD 6
+manan32i@ybl KSDHFKISDHSK3424HK2H34
+ClearOne
+
+INVOICE
+
+INVOICE DATE INVOICE NO. PLACE OF SUPPLY
+October 10,2020 €T000000001 Gujarat
+BiLLTO LL FROM
+Baxter & Stockman Shredding Ninja Turtle Industries.
+Makvane Lane, Mathuradas Vasanji Gala No 5 8:2nd Flr, Shelay Industrial
+Road, Marol Naka, Andheri(e) Estate, Udyog Nagar, Goregaon (w)
+Contact No: 9046584736 GSTIN: 24AADCP14S3C1ZZ
+GSTIN No: 24AADCPI4S3IAZZ
+
+SuPPLY TYPE CODE DOCUMENT TYPE CODE ar coe
+ExPWP EXPWP
+
+1N
+
+B20685(692C76{645478459C1b53e57c
+47664C5048a0033a3a5b6c93708a17
+
+sb
+4 ITEM NAME QTY  PRICE/ DISCOUNT/  GST  AMOUNT
+uNiT uniT
+
+1 Back-end services 80hrs  32000.00 2000 2000 80,000.00
+2 AWS Maintenance and set-up 40hrs 3200000 3000 000 %40,000.00
+SUBTOTAL 212000000
+
+esT 2000
+
+TOTAL DUE  ¥1,20,000.00
+
+verio sionarune
+
+manan32i@ybl 7z
+7 uﬁg
+
+custom FieLo (&~
+
+Custom field info
+
+CUSTOM FIELD 5 CUSTOM FIELD 6
+manan32i@ybl KSDHFKISDHSK3424HK2H34
+
+ClearOne
