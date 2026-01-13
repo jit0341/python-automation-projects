@@ -1,5 +1,5 @@
 """
-ADVANCED GST OCR – PREMIUM VERSION
+ADVANCED GST OCR – PREMIUM VERSION (STABLE)
 Author: Jitendra
 Purpose: CA / GST Consultants
 """
@@ -10,6 +10,7 @@ import json
 import pytesseract
 import pandas as pd
 from PIL import Image
+from datetime import datetime
 
 # =========================
 # CONFIG
@@ -22,6 +23,8 @@ HSN_GST_FILE = "hsn_gst_rates.csv"
 
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 
+FAILED_INVOICES = []
+
 # =========================
 # UTILS
 # =========================
@@ -31,21 +34,22 @@ def extract(pattern, text):
 
 def safe_int(val, default=0):
     try:
-        return int(val)
+        return int(str(val).strip())
     except:
         return default
 
 def safe_float(val, default=0.0):
     try:
-        return float(val)
+        return float(str(val).strip())
     except:
         return default
 
 # =========================
-# LOAD HSN → GST MAP
+# LOAD HSN → GST MAP (SAFE)
 # =========================
 def load_hsn_map():
     if not os.path.exists(HSN_GST_FILE):
+        print("⚠️ hsn_gst_rates.csv not found")
         return {}
 
     df = pd.read_csv(HSN_GST_FILE)
@@ -60,9 +64,9 @@ def load_hsn_map():
 HSN_GST_MAP = load_hsn_map()
 
 # =========================
-# OCR EXTRACTION
+# OCR EXTRACTION (PER INVOICE SAFE)
 # =========================
-def extract_invoice(image_path, hsn_gst_map):
+def extract_invoice(image_path):
     try:
         img = Image.open(image_path)
         text = pytesseract.image_to_string(img)
@@ -82,7 +86,10 @@ def extract_invoice(image_path, hsn_gst_map):
         qty = safe_int(extract(r"Qty[:\s]*(\d+)", text), 1)
         rate = safe_float(extract(r"Rate[:\s]*(\d+)", text), 0)
 
-        taxable = safe_float(extract(r"Taxable\s*Value[:\s]*(\d+)", text), rate * qty)
+        taxable = safe_float(
+            extract(r"Taxable\s*Value[:\s]*(\d+)", text),
+            rate * qty
+        )
 
         cgst = safe_float(extract(r"CGST.*?(\d+)", text))
         sgst = safe_float(extract(r"SGST.*?(\d+)", text))
@@ -90,7 +97,7 @@ def extract_invoice(image_path, hsn_gst_map):
 
         total = safe_float(extract(r"Total\s*Invoice\s*Value[:\s]*(\d+)", text))
 
-        gst_rate = hsn_map.get(hsn, extract(r"(\d+)%", text))
+        gst_rate = HSN_GST_MAP.get(hsn, extract(r"(\d+)%", text))
         gst_rate = safe_int(gst_rate)
 
         confidence = 100
@@ -124,6 +131,13 @@ def extract_invoice(image_path, hsn_gst_map):
         }
 
     except Exception as e:
+        FAILED_INVOICES.append({
+            "File Name": os.path.basename(image_path),
+            "Error Reason": str(e),
+            "Error Stage": "Image Load / OCR",
+            "Suggested Action": "Re-scan or replace invoice",
+            "Timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        })
         print(f"❌ Invoice failed: {os.path.basename(image_path)} → {e}")
         return None
 
@@ -156,13 +170,12 @@ results = []
 for f in os.listdir(IMAGES_DIR):
     if f.lower().endswith((".png", ".jpg", ".jpeg")):
         print(f"📄 Processing: {f}")
-        data = extract_invoice(os.path.join(IMAGES_DIR, f), HSN_GST_MAP)
+        data = extract_invoice(os.path.join(IMAGES_DIR, f))
         if data:
             results.append(data)
 
 if not results:
     print("❌ No valid invoices processed")
-    exit()
 
 # =========================
 # EXPORT
@@ -206,8 +219,15 @@ with pd.ExcelWriter(OUTPUT_EXCEL, engine="openpyxl") as writer:
     df_lines.to_excel(writer, sheet_name="Invoice_Line_Items", index=False)
     df_tally.to_excel(writer, sheet_name="Tally_Line_Items", index=False)
 
+    if FAILED_INVOICES:
+        pd.DataFrame(FAILED_INVOICES).to_excel(
+            writer,
+            sheet_name="Failed_Invoices",
+            index=False
+        )
+
 # =========================
-# GSTR-1 JSON (BASIC)
+# GSTR-1 JSON
 # =========================
 with open(OUTPUT_JSON, "w") as f:
     json.dump(results, f, indent=2)
@@ -215,3 +235,8 @@ with open(OUTPUT_JSON, "w") as f:
 print("\n✅ PREMIUM GST OCR COMPLETED")
 print(f"📊 Excel: {OUTPUT_EXCEL}")
 print(f"📄 GSTR-1 JSON: {OUTPUT_JSON}")
+
+if FAILED_INVOICES:
+    print(f"⚠️ Failed invoices: {len(FAILED_INVOICES)} (see Failed_Invoices sheet)")
+else:
+    print("✅ No failed invoices")
