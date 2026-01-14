@@ -1,51 +1,67 @@
-📄 Simple Delivery Note OCR
 
-Photo / Image → Excel (Admin-Ready)
+
+---
+
+📄 Simple Delivery Note OCR — One-Click Automation
+
+Photo / Image → Excel (Admin-Ready, Local & Offline)
 
 
 ---
 
 🎯 Overview
 
-A lightweight and reliable OCR tool to extract structured data from delivery note images and export it into clean Excel sheets for admin review and upload into existing systems.
+A client-ready, one-click OCR automation system that converts delivery note images into clean, structured Excel reports — ready for admin review and upload into existing systems.
 
-This tool is intentionally simple — focused on accuracy, transparency, and human verification.
-No ERP integrations. No automation theatre.
+This tool is designed for real office workflows, not demos.
+
+> ✔ Runs locally on the client’s computer
+✔ No cloud uploads
+✔ No ERP lock-in
+✔ No automation theatre
+
+
+
+The system prioritizes accuracy, transparency, and control, making it suitable for accounting teams, warehouses, and small businesses.
 
 
 ---
 
 ✅ What This Tool Does
 
-Input
+📥 Input
 
 Delivery note images (PNG / JPG / JPEG)
 
 Optional PO reference file (po_data.csv)
 
 
-Output
+📤 Output
 
 Clean Excel file (.xlsx)
 
-Ready for admin review and upload
+Structured, admin-friendly format
+
+Ready for review and system upload
 
 
-Workflow
+🔄 One-Click Workflow
 
-1. Image → OCR
-
-
-2. Key fields extracted
+1. Place images in the images/ folder
 
 
-3. Optional PO quantity matching
+2. Run the script
 
 
-4. Excel export
+3. Excel report is generated automatically
 
 
-5. Human review & upload
+4. Admin reviews and uploads
+
+
+
+> No manual copy-paste.
+No repetitive data entry.
 
 
 
@@ -54,7 +70,7 @@ Workflow
 
 ✨ Key Features
 
-Core Capabilities
+🔹 Core Capabilities
 
 OCR using Tesseract
 
@@ -67,7 +83,7 @@ Excel export (.xlsx)
 Designed for reliability, not complexity
 
 
-Extracted Fields
+🔹 Extracted Fields
 
 Delivery Note Number
 
@@ -82,15 +98,15 @@ Line Items (Advanced mode)
 PO Quantity Match Status (optional)
 
 
-Reliability First
+🔹 Reliability-First Design
 
 Image preprocessing (Advanced mode)
 
 Review flags for mismatches
 
-Clear visibility of raw OCR text (debug option)
+Raw OCR text visibility (debug option)
 
-Admin-friendly output
+Clear, admin-friendly Excel output
 
 
 
@@ -104,11 +120,11 @@ File: ocr_simple.py
 
 What it does
 
-Extracts main fields only
+Extracts key header fields only
 
 Single Excel sheet
 
-Fast processing
+Fast and lightweight
 
 
 Best for
@@ -117,7 +133,7 @@ Simple delivery notes
 
 Low-volume work
 
-Quick data entry
+Quick admin data entry
 
 
 Run
@@ -139,7 +155,7 @@ What it does
 
 Image preprocessing (OpenCV)
 
-Line item extraction
+Line-item extraction
 
 Optional PO quantity matching
 
@@ -168,49 +184,41 @@ output/delivery_notes_final.xlsx
 
 📸 Visual Examples
 
-Sample Input – Delivery Note Image
+The screenshots in this repository demonstrate:
 
-This is a typical delivery note photo captured from a mobile device.
-![Sample Delivery Note Input](screenshots/input_delivery_note.jpg)
+A typical delivery note image captured from a mobile device
+
+OCR processing feedback in the terminal
+
+Final Excel output with:
+
+Summary sheet
+
+Line-item & PO matching sheet
 
 
----
 
-OCR Processing – Terminal Output
-![OCR Terminal Output](screenshots/terminal_output.jpg)
+These examples show how unstructured images are converted into structured, review-ready Excel data suitable for real admin workflows.
 
 
-
----
-
-Excel Output Preview
-
-Sheet 1 – Delivery Notes Summary 
-
-Sheet 2 – Line Items & PO Matching 
-![Excel Output](screenshots/excel_output.jpg)
-> The output demonstrates how unstructured delivery note images
-> are converted into clean, review-ready Excel data suitable for
-> admin workflows and system uploads.
 ---
 
 ⚡ Quick Demo (60 Seconds)
 
-# 1. Install dependencies
+1️⃣ Install dependencies
+
 pip install -r requirements.txt
 
-# 2. Add delivery note images
+2️⃣ Add delivery note images
+
 cp your_image.png images/
 
-# 3. Run Advanced OCR
+3️⃣ Run Advanced OCR
+
 python ocr_advanced.py
 
-Result
-
-Excel file generated in output/
-
-Ready for admin review & upload
-
+✔ Excel file generated in output/
+✔ Ready for admin review & upload
 
 
 ---
@@ -230,22 +238,26 @@ Sheet 2 – Line Items
 
 📦 Requirements
 
-System Dependency
+🔹 System Dependency
 
 Install Tesseract OCR
 
-pkg install tesseract
-# or
+Linux / Termux
+
 sudo apt install tesseract-ocr -y
 
-Verify:
+Windows
+
+Install Tesseract OCR
+
+Ensure tesseract.exe is added to PATH
+
+
+Verify installation:
 
 tesseract --version
 
-
----
-
-Python Packages
+🔹 Python Packages
 
 pip install -r requirements.txt
 
@@ -261,31 +273,15 @@ numpy
 
 ---
 
-📁 Project Structure
-
-05-simple-ocr-client/
-├── ocr_simple.py
-├── ocr_advanced.py
-├── make_samples.py
-├── po_data.csv          # Optional (PO matching)
-│
-├── images/              # Input images
-├── output/              # Excel output
-├── screenshots/         # README visuals
-└── README.md
-
-
----
-
 ⚠️ Important Notes
 
-This is a semi-automated tool by design
+This is a semi-automated system by design
 
-Admin review is expected
+Admin review is expected before upload
 
-Handwritten text may need correction
+Handwritten or very low-quality images may need correction
 
-Regex patterns can be adjusted per client format
+Regex patterns can be adjusted per client document format
 
 
 
@@ -300,6 +296,10 @@ Blurry / handwritten: manual review required
 Accuracy improves with consistent document formats
 
 
+> This balance between automation and review is intentional and practical.
+
+
+
 
 ---
 
@@ -311,7 +311,7 @@ Warehouses & logistics
 
 Small businesses
 
-Freelancers doing document processing
+Freelancers handling document processing
 
 OCR-based automation projects
 
@@ -355,7 +355,7 @@ Created & maintained by: jit0341
 
 ---
 
-🚀 Next Improvements (Optional)
+🚀 Optional Next Improvements
 
 PDF input support
 
@@ -371,7 +371,6 @@ Batch scheduler
 
 ---
 
-Built for real-world admin workflows — simple, reliable, and transparent.
 
 
----
+
