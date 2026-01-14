@@ -1,15 +1,10 @@
 🐍 Python Automation Projects — Freelance Portfolio
 
-I build **production-ready Python automation solutions** that replace manual work with reliable scripts.
-
-This portfolio showcases **real client-style workflows** — data cleaning, SQL reporting, business automation, and repeatable report generation.
-
-Every project here is:
-• business-focused  
-• execution-proven  
-• structured for client delivery  
-
-These are **not practice scripts**, but automation pipelines I use in freelance proposals and client demos.
+I design production-ready Python automation systems that replace repetitive manual work with reliable, maintainable scripts.
+This portfolio showcases real client-style workflows —
+data cleaning, SQL reporting, document automation, and repeatable business reports.
+These are not practice scripts.
+They are automation pipelines I actively use in freelance proposals, client demos, and delivery discussions.
 
 ---
 
