@@ -5,22 +5,6 @@ import pandas as pd
 from pathlib import Path
 from datetime import datetime
 
-# ===== ADD THIS FUNCTION HERE =====
-def safe_float(value):
-    if not value:
-        return 0.0
-
-    clean = re.sub(r"[^0-9.]", "", value)
-
-    # अगर multiple dots हैं (OCR issue)
-    if clean.count(".") > 1:
-        parts = clean.split(".")
-        clean = "".join(parts[:-1]) + "." + parts[-1]
-
-    try:
-        return float(clean)
-    except:
-        return 0.0
 # ================= CONFIG =================
 INPUT_DIR = "input"
 OUTPUT_DIR = "output"
@@ -28,17 +12,16 @@ os.makedirs(OUTPUT_DIR, exist_ok=True)
 
 textract = boto3.client("textract")
 
-# ================= TEXTRACT =================
+# ================= HELPERS =================
 
-def analyze_document_bytes(file_path):
-    with open(file_path, "rb") as f:
-        data = f.read()
-
-    response = textract.analyze_document(
-        Document={"Bytes": data},
-        FeatureTypes=["FORMS", "TABLES"]
-    )
-    return response["Blocks"]
+def normalize_number(val):
+    if not val:
+        return 0.0
+    val = re.sub(r"[^\d.]", "", str(val))
+    try:
+        return float(val)
+    except:
+        return 0.0
 
 
 def block_text(blocks, block_id):
@@ -48,7 +31,18 @@ def block_text(blocks, block_id):
     return ""
 
 
-# ================= KEY VALUE =================
+def analyze_document_bytes(file_path):
+    with open(file_path, "rb") as f:
+        data = f.read()
+
+    res = textract.analyze_document(
+        Document={"Bytes": data},
+        FeatureTypes=["TABLES", "FORMS"]
+    )
+    return res["Blocks"]
+
+
+# ================= KV EXTRACTION =================
 
 def extract_kv(blocks):
     keys, values, kvs = {}, {}, {}
@@ -61,30 +55,30 @@ def extract_kv(blocks):
                 values[b["Id"]] = b
 
     for k_id, k_block in keys.items():
-        key, val = "", ""
+        key_text, val_text = "", ""
 
         for rel in k_block.get("Relationships", []):
             if rel["Type"] == "CHILD":
                 for cid in rel["Ids"]:
-                    key += block_text(blocks, cid)
+                    key_text += block_text(blocks, cid)
 
             if rel["Type"] == "VALUE":
                 for vid in rel["Ids"]:
                     v_block = values.get(vid)
                     if not v_block:
                         continue
-                    for vrel in v_block.get("Relationships", []):
-                        if vrel["Type"] == "CHILD":
-                            for vcid in vrel["Ids"]:
-                                val += block_text(blocks, vcid)
+                    for vr in v_block.get("Relationships", []):
+                        if vr["Type"] == "CHILD":
+                            for vc in vr["Ids"]:
+                                val_text += block_text(blocks, vc)
 
-        if key.strip():
-            kvs[key.strip()] = val.strip()
+        if key_text:
+            kvs[key_text.strip()] = val_text.strip()
 
     return kvs
 
 
-# ================= TABLES =================
+# ================= TABLE EXTRACTION =================
 
 def extract_tables(blocks):
     block_map = {b["Id"]: b for b in blocks}
@@ -93,23 +87,36 @@ def extract_tables(blocks):
     for b in blocks:
         if b["BlockType"] == "TABLE":
             table = {}
-
             for rel in b.get("Relationships", []):
                 if rel["Type"] == "CHILD":
                     for cid in rel["Ids"]:
                         cell = block_map[cid]
                         if cell["BlockType"] == "CELL":
-                            r, c = cell["RowIndex"], cell["ColumnIndex"]
+                            row, col = cell["RowIndex"], cell["ColumnIndex"]
                             text = ""
-                            for crel in cell.get("Relationships", []):
-                                if crel["Type"] == "CHILD":
-                                    for wid in crel["Ids"]:
+                            for cr in cell.get("Relationships", []):
+                                if cr["Type"] == "CHILD":
+                                    for wid in cr["Ids"]:
                                         text += block_text(blocks, wid)
-                            table.setdefault(r, {})[c] = text.strip()
-
+                            table.setdefault(row, {})[col] = text.strip()
             tables.append(table)
 
     return tables
+
+
+# ================= INVENTORY RULE (VENDOR LOCK) =================
+
+def is_inventory_row(cols):
+    hsn = cols.get(2, "")
+    qty = cols.get(4, "")
+    unit = cols.get(5, "").lower()
+
+    return (
+        hsn.isdigit()
+        and len(hsn) >= 6
+        and qty.replace(".", "").isdigit()
+        and ("pcs" in unit or "nos" in unit)
+    )
 
 
 # ================= MAIN =================
@@ -124,21 +131,37 @@ def main():
 
     for f in files:
         print(f"Processing: {f.name}")
-        blocks = analyze_document_bytes(f)
 
+        blocks = analyze_document_bytes(f)
         kv = extract_kv(blocks)
         tables = extract_tables(blocks)
 
-        invoice_no = kv.get("Invoice No", kv.get("Invoice Number", "NOT FOUND"))
-        invoice_date = kv.get("Date", "NOT FOUND")
+        # -------- BASIC --------
+        invoice_no = kv.get("Invoice No", "NOT FOUND")
+        invoice_date = kv.get("Dated", "NOT FOUND")
         buyer_name = kv.get("Billed to", "MOBILE SOLUTION")
-        buyer_gstin = kv.get("GSTIN/UIN", "NOT FOUND")
+        buyer_gstin = kv.get("GSTIN / UIN", "NOT FOUND")
         supplier_name = "NEW ANURAG MOBILE"
 
-        total_amount = 0.0
+        # -------- TAX --------
+        taxable, cgst, sgst, grand_total = 0, 0, 0, 0
+        gst_rate = 0
+
         for k, v in kv.items():
-            if "Total" in k:
-                total_amount = safe_float(v)
+            kl = k.lower()
+            if "taxable" in kl:
+                taxable = normalize_number(v)
+            elif "cgst amount" in kl:
+                cgst = normalize_number(v)
+            elif "sgst amount" in kl:
+                sgst = normalize_number(v)
+            elif "grand total" in kl:
+                grand_total = normalize_number(v)
+            elif "cgst rate" in kl:
+                gst_rate = int(normalize_number(v) * 2)
+
+        total_amount = grand_total
+
         invoices.append({
             "invoice_no": invoice_no,
             "invoice_date": invoice_date,
@@ -149,6 +172,7 @@ def main():
             "file": f.name
         })
 
+        # -------- MISSING --------
         miss = []
         for fld, val in {
             "invoice_no": invoice_no,
@@ -160,8 +184,13 @@ def main():
                 miss.append(fld)
 
         if miss:
-            missing.append({"file": f.name, "missing_fields": ", ".join(miss)})
+            missing.append({
+                "file": f.name,
+                "missing_fields": ", ".join(miss),
+                "invoice_link": f.name
+            })
 
+        # -------- SALES --------
         sales.append({
             "VoucherType": "Sales",
             "Date": invoice_date,
@@ -169,35 +198,49 @@ def main():
             "PartyGSTIN": buyer_gstin,
             "RefNo": invoice_no,
             "Amount": total_amount,
+            "GST_Rate": gst_rate,
+            "Taxable": taxable,
+            "CGST": cgst,
+            "SGST": sgst,
             "Narration": f"AUTO OCR | {f.name}"
         })
 
+        # -------- INVENTORY --------
         for table in tables:
-            for r, cols in table.items():
-                if r == 1:
+            for row, cols in table.items():
+                if row == 1:
                     continue
+                if not is_inventory_row(cols):
+                    continue
+
+                qty = normalize_number(cols.get(4, "1"))
+                amt = normalize_number(cols.get(10, ""))
+                rate = round(amt / qty, 2) if qty else 0
+
                 inventory.append({
                     "PartyName": buyer_name,
                     "InvoiceNo": invoice_no,
-                    "StockItem": cols.get(2, ""),
-                    "HSN": cols.get(3, ""),
-                    "Qty": cols.get(5, ""),
-                    "Rate": cols.get(6, ""),
-                    "Amount": cols.get(10, "")
+                    "StockItem": cols.get(1, ""),
+                    "HSN": cols.get(2, ""),
+                    "Qty": qty,
+                    "UOM": "Pcs",
+                    "Rate": rate,
+                    "Amount": amt
                 })
 
-    out = os.path.join(
+    # ================= SAVE =================
+    out_file = os.path.join(
         OUTPUT_DIR,
-        f"PHASE3_MOBILE_WOW_{datetime.now().strftime('%H%M')}.xlsx"
+        f"PHASE3_VENDOR_LOCKED_{datetime.now().strftime('%H%M')}.xlsx"
     )
 
-    with pd.ExcelWriter(out, engine="xlsxwriter") as w:
+    with pd.ExcelWriter(out_file, engine="xlsxwriter") as w:
         pd.DataFrame(invoices).to_excel(w, "Invoices", index=False)
         pd.DataFrame(missing).to_excel(w, "Missing_Fields", index=False)
         pd.DataFrame(sales).to_excel(w, "Tally_Sales", index=False)
         pd.DataFrame(inventory).to_excel(w, "Tally_Inventory", index=False)
 
-    print("✅ WOW DONE:", out)
+    print("✅ WOW DONE:", out_file)
 
 
 if __name__ == "__main__":
