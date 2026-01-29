@@ -74,6 +74,14 @@ def extract_supplier_gstin(lines):
         if m:
             return m.group()
     return "NOT FOUND"
+def extract_buyer_gstin(lines):
+    for ln in lines:
+        txt = ln["text"].upper()
+        if any(k in txt for k in ["BUYER", "BILL TO", "SHIP TO"]):
+            m = re.search(GSTIN_REGEX, txt)
+            if m:
+                return m.group()
+    return ""
 
 def extract_grand_total(lines):
     candidates = []
@@ -138,6 +146,7 @@ def main():
         invoice_no = extract_invoice_no(lines)
         invoice_date = extract_invoice_date(lines)
         supplier_gstin = extract_supplier_gstin(lines)
+        buyer_gstin = extract_buyer_gstin(lines)       
         total_amount = extract_grand_total(lines)
 
         invoices.append({
@@ -146,6 +155,7 @@ def main():
             "supplier_name": "NEW ANURAG MOBILE",
             "supplier_gstin": supplier_gstin,
             "buyer_name": "MOBILE",
+            "buyer_gstin": buyer_gstin,       
             "buyer_gstin": "",
             "total_amount": total_amount,
             "file": f.name
