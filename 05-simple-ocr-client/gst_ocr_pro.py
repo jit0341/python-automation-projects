@@ -1,3 +1,7 @@
+# ================= GST OCR PRO v2 =================
+# Stable | Tables-based Inventory | Invoice-level GST split
+# Author: Jitendra Bharti (PRO)
+
 import os, re, sys, socket
 import boto3
 import pandas as pd
@@ -6,7 +10,6 @@ from datetime import datetime
 
 # ================= CONFIG =================
 PRODUCT_MODE = "PRO"
-
 INPUT_DIR = "input"
 OUTPUT_DIR = "output"
 os.makedirs(OUTPUT_DIR, exist_ok=True)
@@ -28,6 +31,7 @@ def license_check():
     if (today - start).days >= LOCK_DAYS:
         print("🔒 PRO PLAN EXPIRED")
         print(f"UPI: {RENEW_UPI}")
+        print(f"Mobile: {RENEW_MOBILE}")
         sys.exit()
 
 # ================= INTERNET =================
@@ -44,19 +48,19 @@ def get_textract_client():
 
 textract = get_textract_client()
 
-# ================= OCR CORE =================
+# ================= OCR =================
 def analyze_document_bytes(file_path):
     return textract.analyze_document(
         Document={"Bytes": open(file_path, "rb").read()},
         FeatureTypes=["TABLES"]
     )["Blocks"]
 
-def get_words(blocks):
-    return [b for b in blocks if b["BlockType"] == "WORD"]
-
+# ================= LINE GROUP =================
 def line_groups(blocks):
+    words = [b for b in blocks if b["BlockType"] == "WORD"]
     lines = []
-    for w in get_words(blocks):
+
+    for w in words:
         y = round(w["Geometry"]["BoundingBox"]["Top"], 3)
         for ln in lines:
             if abs(ln["y"] - y) <= 0.01:
@@ -71,7 +75,7 @@ def line_groups(blocks):
 
     return sorted(lines, key=lambda x: x["y"])
 
-# ================= HEADER EXTRACTION =================
+# ================= HEADER =================
 def extract_supplier(lines):
     for ln in lines[:10]:
         if re.search(GSTIN_REGEX, ln["text"]):
@@ -103,6 +107,17 @@ def extract_total(lines):
                 nums.append(v)
     return max(nums) if nums else 0.0
 
+# ================= GST RATE (INVOICE LEVEL) =================
+def extract_invoice_gst_rate(lines):
+    text = " ".join(l["text"] for l in lines).upper()
+    if "18%" in text:
+        return 9.0, 9.0
+    if "12%" in text:
+        return 6.0, 6.0
+    if "5%" in text:
+        return 2.5, 2.5
+    return 9.0, 9.0   # SAFE DEFAULT (MOBILE)
+
 # ================= TABLE EXTRACTION =================
 def extract_tables(blocks):
     block_map = {b["Id"]: b for b in blocks}
@@ -122,24 +137,13 @@ def extract_tables(blocks):
                                     text += block_map[wid]["Text"] + " "
                         rows.setdefault(cell["RowIndex"], {})[cell["ColumnIndex"]] = text.strip()
             tables.append(rows)
-
     return tables
-
-# ================= INVENTORY RULES =================
-def is_valid_item(name, qty):
-    bad = ["CGST", "SGST", "IGST", "TAX", "TOTAL"]
-    if any(b in name.upper() for b in bad):
-        return False
-    if not re.match(r"\d+(\.\d+)?", str(qty)):
-        return False
-    return True
 
 # ================= MAIN =================
 def main():
     license_check()
-
     if not check_internet():
-        print("Internet required")
+        print("❌ Internet required")
         return
 
     invoices, inventory, sales, missing = [], [], [], []
@@ -151,12 +155,12 @@ def main():
 
         supplier_name = extract_supplier(lines)
         supplier_gstin, buyer_gstin = extract_gstins(lines)
-
         buyer_name = "MOBILE" if buyer_gstin else "UNKNOWN"
         inv_date = extract_invoice_date(lines)
         total = extract_total(lines)
-
         inv_no = pdf.stem
+
+        cgst_rate, sgst_rate = extract_invoice_gst_rate(lines)
 
         invoices.append({
             "Invoice No": inv_no,
@@ -178,59 +182,58 @@ def main():
             "Narration": f"AUTO OCR | {pdf.name}"
         })
 
-# ================= PRO INVENTORY (TAX-AWARE) =================
+        # ========= INVENTORY (TABLES ONLY) =========
+        for table in tables:
+            for r, row in table.items():
+                cells = list(row.values())
+                line = " ".join(cells).upper()
 
-       for ln in lines:
-           txt = ln["text"]
+                if any(x in line for x in ["TOTAL", "CGST", "SGST", "IGST", "TAX", "RATE"]):
+                    continue
 
-    # Skip headers / totals
-           if any(x in txt.upper() for x in [
-        "CGST", "SGST", "IGST", "TOTAL", "TAX",
-        "RATE", "GST", "HSN", "AMOUNT"
-    ]):
-        continue
+                if not re.search(r"[A-Z]{2,}", line):
+                    continue
 
-    # Must look like a product line
-    if not re.search(r"[A-Z]{2,}", txt):
-        continue
+                nums = re.findall(r"\d{1,3}(?:,\d{3})*(?:\.\d+)?", line)
+                if not nums:
+                    continue
 
-    nums = re.findall(r"\d{1,3}(?:,\d{3})*(?:\.\d{2})?", txt)
-    if not nums:
-        continue
+                taxable = float(nums[-1].replace(",", ""))
 
-    taxable = float(nums[-1].replace(",", ""))
+                qty = 1.0
+                for n in nums[:-1]:
+                    try:
+                        q = float(n.replace(",", ""))
+                        if q <= 100:
+                            qty = q
+                            break
+                    except:
+                        pass
 
-    qty_match = re.search(r"\b\d+(\.\d+)?\b", txt)
-    qty = float(qty_match.group()) if qty_match else 1.0
+                name = re.sub(r"\d{1,3}(?:,\d{3})*(?:\.\d+)?", "", line)
+                name = re.sub(GSTIN_REGEX, "", name)
+                name = re.sub(r"\bPCS?|NOS?|QTY\b", "", name)
+                name = name.strip()
 
-    name = txt
-    name = re.sub(GSTIN_REGEX, "", name)
-    name = re.sub(r"\d{1,3}(?:,\d{3})*(?:\.\d{2})?", "", name)
-    name = re.sub(r"\bPCS?|NOS?|QTY\b", "", name, flags=re.I)
-    name = name.strip()
+                if len(name) < 4:
+                    continue
 
-    if len(name) < 4:
-        continue
+                cgst_amt = round(taxable * cgst_rate / 100, 2)
+                sgst_amt = round(taxable * sgst_rate / 100, 2)
 
-    # ---- TAX CALCULATION ----
-    cgst_rate = invoice_cgst_rate
-    sgst_rate = invoice_sgst_rate
+                inventory.append({
+                    "Invoice No": inv_no,
+                    "Item Name": name,
+                    "Qty": qty,
+                    "UOM": "Pcs.",
+                    "Taxable Value": taxable,
+                    "CGST Rate": cgst_rate,
+                    "CGST Amount": cgst_amt,
+                    "SGST Rate": sgst_rate,
+                    "SGST Amount": sgst_amt,
+                    "Line Total": round(taxable + cgst_amt + sgst_amt, 2)
+                })
 
-    cgst_amt = round(taxable * cgst_rate / 100, 2)
-    sgst_amt = round(taxable * sgst_rate / 100, 2)
-
-    inventory.append({
-        "Invoice No": inv_no,
-        "Item Name": name,
-        "Qty": qty,
-        "UOM": "Pcs.",
-        "Taxable Value": taxable,
-        "CGST Rate": cgst_rate,
-        "CGST Amount": cgst_amt,
-        "SGST Rate": sgst_rate,
-        "SGST Amount": sgst_amt,
-        "Line Total": round(taxable + cgst_amt + sgst_amt, 2)
-    })
     dashboard = [{
         "Total Invoices": len(invoices),
         "Total Inventory Rows": len(inventory),
@@ -239,7 +242,6 @@ def main():
     }]
 
     out = os.path.join(OUTPUT_DIR, f"GST_PRO_{datetime.now().strftime('%H%M')}.xlsx")
-
     with pd.ExcelWriter(out, engine="xlsxwriter") as w:
         pd.DataFrame(invoices).to_excel(w, "Invoices", index=False)
         pd.DataFrame(sales).to_excel(w, "Tally_Sales", index=False)
