@@ -1,214 +1,227 @@
-import os, re, sys, socket
+#!/usr/bin/env python3
+"""
+GST OCR DEMO v0.9
+Rule-driven, demo-grade, Termux compatible
+"""
+
+import re
+import os
+import sys
+import hashlib
+from datetime import datetime
+from pathlib import Path
+
 import boto3
 import pandas as pd
-from pathlib import Path
-from datetime import datetime, date
 
-# ================== MODE ==================
-PRODUCT_MODE = "DEMO"
-
-# ================== PATHS =================
-INPUT_DIR = "input"
-OUTPUT_DIR = "output"
-os.makedirs(OUTPUT_DIR, exist_ok=True)
-
-# ================== DEMO CONFIG ==================
-DEMO_DAYS = 10
-DEMO_FILE = "demo_start.txt"
-
-UPGRADE_UPI = "8871097310-2@ybl"
-UPGRADE_MOBILE = "8871097310"
+# ========================= CONFIG =========================
 
 GSTIN_REGEX = r"\d{2}[A-Z]{5}\d{4}[A-Z][1-9A-Z]Z[0-9A-Z]"
+DATE_REGEX = r"\b(\d{1,2}[-/]\d{1,2}[-/]\d{2,4})\b"
 
-# ================== DEMO LOCK ==================
-def demo_check():
-    today = date.today()
+MIN_VALID_AMOUNT = 100.0
 
-    if not os.path.exists(DEMO_FILE):
-        open(DEMO_FILE, "w").write(today.strftime("%Y-%m-%d"))
-        return False  # not expired
+BAD_INVOICE_WORDS = {
+    "eway", "e-way", "sign", "signature", "auth",
+    "transport", "gst", "cgst", "sgst", "total"
+}
 
-    start = datetime.strptime(open(DEMO_FILE).read().strip(), "%Y-%m-%d").date()
-    days_used = (today - start).days
+# ========================= TEXTRACT =========================
 
-    return days_used >= DEMO_DAYS
+def textract_lines(file_path):
+    client = boto3.client("textract", region_name="ap-south-1")
 
-# ================== INTERNET ==================
-def check_internet():
-    try:
-        socket.create_connection(("8.8.8.8", 53), timeout=4)
-        return True
-    except:
-        return False
+    with open(file_path, "rb") as f:
+        bytes_data = f.read()
 
-# ================== AWS ==================
-def get_textract():
-    return boto3.client("textract", region_name="ap-south-1")
+    resp = client.detect_document_text(Document={"Bytes": bytes_data})
 
-textract = get_textract()
-
-# ================== OCR CORE ==================
-def analyze_pdf(path):
-    return textract.analyze_document(
-        Document={"Bytes": open(path, "rb").read()},
-        FeatureTypes=["TABLES"]
-    )["Blocks"]
-
-def group_lines(blocks):
-    words = [b for b in blocks if b["BlockType"] == "WORD"]
     lines = []
-    for w in words:
-        y = round(w["Geometry"]["BoundingBox"]["Top"], 3)
-        for ln in lines:
-            if abs(ln["y"] - y) < 0.01:
-                ln["w"].append(w)
-                break
-        else:
-            lines.append({"y": y, "w": [w]})
+    for b in resp.get("Blocks", []):
+        if b["BlockType"] == "LINE":
+            lines.append(b["Text"].strip())
 
-    for ln in lines:
-        ln["w"].sort(key=lambda x: x["Geometry"]["BoundingBox"]["Left"])
-        ln["text"] = " ".join(x["Text"] for x in ln["w"])
+    return lines
 
-    return sorted(lines, key=lambda x: x["y"])
+# ========================= HELPERS =========================
 
-# ================== HEADER ==================
-def extract_gstins(lines):
-    gstins = re.findall(GSTIN_REGEX, " ".join(l["text"] for l in lines))
-    return gstins[0] if len(gstins) > 0 else "", gstins[1] if len(gstins) > 1 else ""
+def normalize_amount(val):
+    try:
+        return float(re.sub(r"[^\d.]", "", val))
+    except:
+        return None
 
-def extract_date(lines):
+def valid_invoice_candidate(txt):
+    t = txt.lower()
+    if len(txt) < 4:
+        return False
+    if any(w in t for w in BAD_INVOICE_WORDS):
+        return False
+    if not re.search(r"\d", txt):
+        return False
+    return True
+
+def parse_date(d):
+    for fmt in ("%d-%m-%Y", "%d/%m/%Y", "%d-%m-%y", "%d/%m/%y"):
+        try:
+            return datetime.strptime(d, fmt).date()
+        except:
+            pass
+    return None
+
+# ========================= EXTRACTION =========================
+
+def extract_invoice_no(lines, filename):
+    candidates = []
+
     for l in lines:
-        m = re.search(r"\d{2}-\d{2}-\d{4}", l["text"])
+        if "invoice" in l.lower():
+            parts = re.split(r"[:\s]", l)
+            for p in parts:
+                if valid_invoice_candidate(p):
+                    candidates.append(p)
+
+    if candidates:
+        return candidates[0]
+
+    # fallback: filename
+    base = Path(filename).stem
+    return base[:20]
+
+def extract_invoice_date(lines):
+    for l in lines:
+        if "date" in l.lower() and not any(x in l.lower() for x in ["eway", "delivery"]):
+            m = re.search(DATE_REGEX, l)
+            if m:
+                d = parse_date(m.group(1))
+                if d and abs((datetime.now().date() - d).days) < 400:
+                    return d.isoformat()
+
+    # fallback global scan
+    for l in lines:
+        m = re.search(DATE_REGEX, l)
         if m:
-            return m.group()
-    return ""
+            d = parse_date(m.group(1))
+            if d:
+                return d.isoformat()
 
-def extract_total(lines):
-    vals = []
+    return "NA"
+
+def extract_gstin(lines):
+    found = []
     for l in lines:
-        for n in re.findall(r"\d{1,3}(?:,\d{3})*(?:\.\d+)?", l["text"]):
-            try:
-                v = float(n.replace(",", ""))
-                if v > 500:
-                    vals.append(v)
-            except:
-                pass
-    return max(vals) if vals else 0.0
+        m = re.search(GSTIN_REGEX, l)
+        if m:
+            found.append(m.group())
 
-# ================== INVENTORY ==================
-def extract_inventory(lines, inv_no):
+    if len(found) >= 2:
+        return found[0], found[1]
+    if len(found) == 1:
+        return found[0], "NA"
+    return "NA", "NA"
+
+# ========================= INVENTORY =========================
+
+def extract_inventory(lines, invoice_total):
     rows = []
+
     for l in lines:
-        t = l["text"]
-
-        if any(x in t.upper() for x in ["CGST", "SGST", "TOTAL", "TAX", "RATE"]):
+        if any(x in l.lower() for x in ["gst", "cgst", "sgst", "total", "%"]):
             continue
 
-        nums = re.findall(r"\d{1,3}(?:,\d{3})*(?:\.\d+)?", t)
-        if len(nums) < 2:
+        nums = re.findall(r"\d+\.\d{1,2}", l)
+        if not nums:
             continue
 
-        taxable = float(nums[-1].replace(",", ""))
-        qty = float(nums[0])
-
-        name = re.sub(GSTIN_REGEX, "", t)
-        name = re.sub(r"\d+(\.\d+)?", "", name)
-        name = re.sub(r"[/%]", "", name)
-        name = name.strip()
-
-        if len(name) < 3:
+        amt = normalize_amount(nums[-1])
+        if not amt:
             continue
 
-        cgst_rate = sgst_rate = 9
-        cgst_amt = round(taxable * cgst_rate / 100, 2)
-        sgst_amt = round(taxable * sgst_rate / 100, 2)
+        if amt < MIN_VALID_AMOUNT:
+            continue
+        if invoice_total and amt > invoice_total:
+            continue
 
         rows.append({
-            "Invoice No": inv_no,
-            "Item Name": name,
-            "Qty": qty,
-            "UOM": "Pcs.",
-            "Taxable Value": taxable,
-            "CGST Rate": cgst_rate,
-            "CGST Amount": cgst_amt,
-            "SGST Rate": sgst_rate,
-            "SGST Amount": sgst_amt,
-            "Line Total": round(taxable + cgst_amt + sgst_amt, 2),
-            "⚠ DEMO": "UPGRADE REQUIRED"
+            "Item Text": l[:80],
+            "Amount": amt,
+            "Ignored": "NO"
         })
 
     return rows
 
-# ================== MAIN ==================
-def main():
-    if not check_internet():
-        print("❌ Internet required")
-        return
+# ========================= MAIN =========================
 
-    expired = demo_check()
+def process_file(file_path):
+    lines = textract_lines(file_path)
 
-    invoices, inventory, sales = [], [], []
+    invoice_no = extract_invoice_no(lines, file_path)
+    invoice_date = extract_invoice_date(lines)
+    sup_gst, buy_gst = extract_gstin(lines)
 
-    for pdf in Path(INPUT_DIR).glob("*.pdf"):
-        blocks = analyze_pdf(pdf)
-        lines = group_lines(blocks)
+    amounts = []
+    for l in lines:
+        for n in re.findall(r"\d+\.\d{1,2}", l):
+            v = normalize_amount(n)
+            if v:
+                amounts.append(v)
 
-        sup_gst, buy_gst = extract_gstins(lines)
-        inv_date = extract_date(lines)
-        total = extract_total(lines)
+    invoice_total = max(amounts) if amounts else None
 
-        inv_no = pdf.stem
+    inventory = extract_inventory(lines, invoice_total)
 
-        invoices.append({
-            "Invoice No": inv_no,
-            "Invoice Date": inv_date,
-            "Supplier Name": "AUTO OCR (95%)",
+    return {
+        "invoice": {
+            "Invoice No": invoice_no,
+            "Invoice Date": invoice_date,
             "Supplier GSTIN": sup_gst,
-            "Buyer Name": "MOBILE",
             "Buyer GSTIN": buy_gst,
-            "Total Amount": total,
-            "⚠ DEMO": "UPGRADE TO PRO",
-            "File": pdf.name
-        })
+            "Amount": invoice_total
+        },
+        "inventory": inventory
+    }
 
-        inventory.extend(extract_inventory(lines, inv_no))
+# ========================= ENTRY =========================
 
-        sales.append({
-            "VoucherType": "Sales",
-            "Date": inv_date,
-            "PartyName": "MOBILE",
-            "Reference": inv_no,
-            "Amount": total,
-            "Narration": "DEMO VERSION"
-        })
+def main():
+    if len(sys.argv) < 2:
+        print("Usage: python gst_ocr_demo_v09.py <folder>")
+        sys.exit(1)
 
-    dashboard = [{
-        "Mode": "DEMO",
-        "Status": "EXPIRED" if expired else "ACTIVE",
-        "Invoices Found": len(invoices),
-        "Inventory Rows": len(inventory),
-        "Demo Days Limit": DEMO_DAYS,
-        "Contact": UPGRADE_MOBILE,
-        "UPI": UPGRADE_UPI,
-        "Generated On": datetime.now().strftime("%d-%m-%Y %H:%M")
-    }]
+    folder = sys.argv[1]
+    invoices = []
+    inventory_all = []
+    sales = []
 
-    out = os.path.join(OUTPUT_DIR, f"GST_DEMO_{datetime.now().strftime('%H%M')}.xlsx")
+    for f in os.listdir(folder):
+        if not f.lower().endswith((".png", ".jpg", ".jpeg")):
+            continue
 
-    with pd.ExcelWriter(out, engine="xlsxwriter") as w:
+        res = process_file(os.path.join(folder, f))
+        inv = res["invoice"]
+
+        invoices.append(inv)
+
+        for r in res["inventory"]:
+            r["Invoice"] = inv["Invoice No"]
+            inventory_all.append(r)
+
+        if inv["Invoice No"] != "NA" and inv["Amount"]:
+            sales.append({
+                "Voucher Type": "Sales",
+                "Date": inv["Invoice Date"],
+                "Reference": inv["Invoice No"],
+                "Amount": inv["Amount"],
+                "Narration": "OCR ASSISTED"
+            })
+
+    out = f"GST_OUTPUT_{datetime.now().strftime('%Y%m%d_%H%M')}.xlsx"
+    with pd.ExcelWriter(out, engine="openpyxl") as w:
         pd.DataFrame(invoices).to_excel(w, "Invoices", index=False)
-        pd.DataFrame(sales).to_excel(w, "Tally_Sales", index=False)
-        pd.DataFrame(inventory).to_excel(w, "Tally_Inventory", index=False)
-        pd.DataFrame(dashboard).to_excel(w, "Dashboard", index=False)
+        pd.DataFrame(inventory_all).to_excel(w, "Inventory", index=False)
+        pd.DataFrame(sales).to_excel(w, "Sales_Possible", index=False)
 
-    if expired:
-        print("🔒 DEMO EXPIRED — CONTACT FOR PRO")
-    else:
-        print("✅ DEMO ACTIVE")
-
-    print("📂 Output:", out)
+    print("✅ DONE:", out)
 
 if __name__ == "__main__":
     main()
