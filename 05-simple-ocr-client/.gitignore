@@ -1,1 +1,7 @@
+
 .env
+
+voltagent/
+volt_config.json
+agent.py
+
