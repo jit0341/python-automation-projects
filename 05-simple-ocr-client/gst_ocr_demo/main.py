@@ -1,5 +1,6 @@
 import os
 import json
+import sys
 
 from pipeline.invoice_number_extractor import extract_invoice_number
 from pipeline.invoice_date_extractor import extract_invoice_date
@@ -8,6 +9,20 @@ from pipeline.total_amount_extractor import extract_total_amount
 from pipeline.excel_writer import write_excel
 from pipeline.inventories_extractor import extract_inventories
 from pipeline.name_extractor import extract_names
+
+#-----------AWS Credentials------------
+def setup_aws_credentials():
+    if getattr(sys, 'frozen', False):
+        base_dir = os.path.dirname(sys.executable)
+    else:
+        base_dir = os.path.dirname(os.path.abspath(__file__))
+
+    aws_dir = os.path.join(base_dir, "aws")
+
+    os.environ["AWS_SHARED_CREDENTIALS_FILE"] = os.path.join(aws_dir, "credentials")
+    os.environ["AWS_CONFIG_FILE"] = os.path.join(aws_dir, "config")
+
+setup_aws_credentials()
 
 # ---------------- CONFIG ----------------
 TEXTRACT_DIR = "textract_json"
