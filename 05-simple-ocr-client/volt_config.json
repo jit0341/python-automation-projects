@@ -1,0 +1,33 @@
+{
+    "project_name": "GST_Invoice_to_Excel_Automation",
+    "mode": "PRODUCTION",
+    "input_source": "input",
+    "output_format": "xlsx",
+    "excel_structure": {
+        "sheets": [
+            {
+                "name": "Main invoice sheet",
+                "columns": ["Invoice No", "Invoice Date", "Supplier Name", "Supplier GSTIN", "Buyer Name", "Buyer GSTIN", "Total Amount", "File"]
+            },
+            {
+                "name": "Tally sales sheet",
+                "columns": ["VoucherType", "Date", "PartyName", "Reference", "Amount", "Narration"],
+                "defaults": { "VoucherType": "Sales" }
+            },
+            {
+                "name": "Inventories sheet",
+                "columns": ["InvoiceNo", "PartyName", "ItemName", "HSN", "Qty", "UOM", "CGST_Rate", "SGST_Rate", "SGST_Amt", "Status"],
+                "vision_processing": true
+            },
+            {
+                "name": "Dashboard sheet",
+                "columns": ["Total Invoices", "Total Inventory Rows", "Missing Fields", "Generated On"]
+            }
+        ]
+    },
+    "cost_control": {
+        "use_duplicate_check": true,
+        "aws_textract_limit_alert": 1000
+    }
+}
+

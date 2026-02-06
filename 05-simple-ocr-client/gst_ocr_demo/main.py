@@ -6,6 +6,8 @@ from pipeline.invoice_date_extractor import extract_invoice_date
 from pipeline.gstin_extractor import extract_gstins
 from pipeline.total_amount_extractor import extract_total_amount
 from pipeline.excel_writer import write_excel
+from pipeline.inventories_extractor import extract_inventories
+from pipeline.name_extractor import extract_names
 
 # ---------------- CONFIG ----------------
 TEXTRACT_DIR = "textract_json"
@@ -35,6 +37,8 @@ def process_single_invoice(json_path):
     inv_date = extract_invoice_date(lines)
     gst = extract_gstins(lines)
     total = extract_total_amount(lines)
+    buyer_name, supplier_name = extract_names(lines)
+    inventories = extract_inventories(lines)
 
     debug_rows = []
     for section in [inv_no, total]:
@@ -48,7 +52,10 @@ def process_single_invoice(json_path):
         "invoice_date": inv_date.get("invoice_date"),
         "supplier_gstin": gst.get("supplier_gstin"),
         "buyer_gstin": gst.get("buyer_gstin"),
+        "supplier_name": supplier_name,
+        "buyer_name": buyer_name,
         "total_amount": total.get("total_amount"),
+        "inventories": inventories,
         "status": final_status(inv_no, inv_date, gst, total),
         "score": max(
             inv_no.get("score", 0),
