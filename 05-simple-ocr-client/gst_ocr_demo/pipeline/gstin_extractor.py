@@ -1,45 +1,30 @@
 import re
 
-GSTIN_RE = r"\b\d{2}[A-Z]{5}\d{4}[A-Z]{1}[A-Z\d]{1}Z[A-Z\d]\b"
+def extract_gstins(lines):
+    gst_re = r"\b\d{2}[A-Z]{5}\d{4}[A-Z]{1}[A-Z\d]{1}Z[A-Z\d]\b"
+    gsteins_found = []
 
-BUYER_KEYS = ["bill to", "buyer", "ship to", "recipient"]
-SUPPLIER_KEYS = ["supplier", "from", "seller"]
+    for i, item in enumerate(lines):
+        text = item.get("text", "").upper()
+        match = re.search(gst_re, text)
+        if match:
+            gsteins_found.append({"gst": match.group(0), "index": i})
 
-def extract_gstins(textract_lines):
-    buyer_gstin = None
-    supplier_gstin = None
+    res = {"supplier_gstin": "Not Found", "buyer_gstin": "Not Found"}
 
-    for idx, item in enumerate(textract_lines):
-        text = (item.get("text") or "")
-        up = text.upper()
+    if len(gsteins_found) >= 1:
+        # जो सबसे पहले मिला वो Supplier
+        res["supplier_gstin"] = gsteins_found[0]["gst"]
+    
+    if len(gsteins_found) >= 2:
+        # जो बाद में मिला वो Buyer
+        res["buyer_gstin"] = gsteins_found[1]["gst"]
+    elif len(gsteins_found) == 1:
+        # अगर सिर्फ एक ही मिला, तो चेक करें कि कहीं वो 'Bill To' के नीचे तो नहीं?
+        idx = gsteins_found[0]["index"]
+        context = " ".join([l.get("text", "").lower() for l in lines[max(0, idx-5):idx]])
+        if any(k in context for k in ["bill to", "buyer", "consignee"]):
+            res["buyer_gstin"] = gsteins_found[0]["gst"]
+            res["supplier_gstin"] = "Not Found"
 
-        m = re.search(GSTIN_RE, up)
-        if not m:
-            continue
-
-        gstin = m.group(0)
-
-        # context window ±1 line
-        context = ""
-        for j in (idx-1, idx, idx+1):
-            if 0 <= j < len(textract_lines):
-                context += " " + (textract_lines[j].get("text") or "").lower()
-
-        if any(k in context for k in BUYER_KEYS) and not buyer_gstin:
-            buyer_gstin = gstin
-            continue
-
-        if any(k in context for k in SUPPLIER_KEYS) and not supplier_gstin:
-            supplier_gstin = gstin
-            continue
-
-        # fallback
-        if not supplier_gstin:
-            supplier_gstin = gstin
-        elif not buyer_gstin:
-            buyer_gstin = gstin
-
-    return {
-        "buyer_gstin": buyer_gstin,
-        "supplier_gstin": supplier_gstin
-    }
+    return res

@@ -1,111 +1,66 @@
 import os
 import json
-import sys
+from datetime import datetime
 
+# --- Pipeline folder से सही Imports ---
 from pipeline.invoice_number_extractor import extract_invoice_number
+from pipeline.total_amount_extractor import extract_total_amount
 from pipeline.invoice_date_extractor import extract_invoice_date
 from pipeline.gstin_extractor import extract_gstins
-from pipeline.total_amount_extractor import extract_total_amount
-from pipeline.excel_writer import write_excel
-from pipeline.inventories_extractor import extract_inventories
 from pipeline.name_extractor import extract_names
+from pipeline.inventories_extractor import extract_inventories_advanced
+from pipeline.excel_writer import write_to_excel
 
-#-----------AWS Credentials------------
-def setup_aws_credentials():
-    if getattr(sys, 'frozen', False):
-        base_dir = os.path.dirname(sys.executable)
-    else:
-        base_dir = os.path.dirname(os.path.abspath(__file__))
+# CONFIG
+TEXTRACT_DIR = "textract_json" 
+OUTPUT_DIR = "outputs"
 
-    aws_dir = os.path.join(base_dir, "aws")
+if not os.path.exists(OUTPUT_DIR):
+    os.makedirs(OUTPUT_DIR)
 
-    os.environ["AWS_SHARED_CREDENTIALS_FILE"] = os.path.join(aws_dir, "credentials")
-    os.environ["AWS_CONFIG_FILE"] = os.path.join(aws_dir, "config")
-
-setup_aws_credentials()
-
-# ---------------- CONFIG ----------------
-TEXTRACT_DIR = "textract_json"
-MODE = "PROD"   # PROD | DEMO
-# ----------------------------------------
-
-def load_lines_from_textract(json_path):
+def process_invoice(json_path):
     with open(json_path, "r", encoding="utf-8") as f:
         data = json.load(f)
-
-    lines = []
-    for block in data.get("Blocks", []):
-        if block.get("BlockType") == "LINE":
-            lines.append({
-                "text": block.get("Text", ""),
-                "confidence": block.get("Confidence", 0),
-                "source": "line"
-            })
-    return lines
-
-
-def process_single_invoice(json_path):
+    
+    blocks = data.get("Blocks", [])
+    lines = [{"text": b.get("Text", ""), "confidence": b.get("Confidence", 0)} 
+             for b in blocks if b.get("BlockType") == "LINE"]
+    
     file_name = os.path.basename(json_path)
-    lines = load_lines_from_textract(json_path)
-
+    
+    # एक्सट्रैक्शन लॉजिक
     inv_no = extract_invoice_number(lines)
     inv_date = extract_invoice_date(lines)
     gst = extract_gstins(lines)
     total = extract_total_amount(lines)
-    buyer_name, supplier_name = extract_names(lines)
-    inventories = extract_inventories(lines)
-
-    debug_rows = []
-    for section in [inv_no, total]:
-        for d in section.get("debug", []):
-            d["file"] = file_name
-            debug_rows.append(d)
+    buyer, supplier = extract_names(lines)
+    items = extract_inventories_advanced(blocks)
 
     return {
         "file": file_name,
         "invoice_no": inv_no.get("invoice_no"),
         "invoice_date": inv_date.get("invoice_date"),
+        "supplier_name": supplier,
+        "buyer_name": buyer,
         "supplier_gstin": gst.get("supplier_gstin"),
         "buyer_gstin": gst.get("buyer_gstin"),
-        "supplier_name": supplier_name,
-        "buyer_name": buyer_name,
         "total_amount": total.get("total_amount"),
-        "inventories": inventories,
-        "status": final_status(inv_no, inv_date, gst, total),
-        "score": max(
-            inv_no.get("score", 0),
-            total.get("score", 0)
-        ),
-        "debug": debug_rows
+        "inventories": items
     }
 
-
-def final_status(*sections):
-    if any(s.get("status") == "EXCEPT" for s in sections):
-        return "EXCEPT"
-    if any(s.get("status") == "REVIEW" for s in sections):
-        return "REVIEW"
-    return "AUTO"
-
-
-def run_all_invoices():
-    results = []
-    debug_all = []
-
-    for f in os.listdir(TEXTRACT_DIR):
-        if not f.endswith(".json"):
-            continue
-
-        print("Processing:", f)
-        out = process_single_invoice(os.path.join(TEXTRACT_DIR, f))
-
-        results.append(out)
-        debug_all.extend(out.get("debug", []))
-
-    return results, debug_all
-
-
 if __name__ == "__main__":
-    results, debug_rows = run_all_invoices()
-    output_file = write_excel(results, debug_rows)
-    print("✅ FINAL Excel generated:", output_file)
+    if os.path.exists(TEXTRACT_DIR):
+        files = [f for f in os.listdir(TEXTRACT_DIR) if f.endswith(".json")]
+        if not files:
+            print(f"⚠️ No JSON files found in {TEXTRACT_DIR}")
+        else:
+            results = []
+            for f in files:
+                print(f"🔍 Processing: {f}")
+                results.append(process_invoice(os.path.join(TEXTRACT_DIR, f)))
+            
+            output_path = os.path.join(OUTPUT_DIR, f"Final_GST_Report_{datetime.now().strftime('%d%m%Y_%H%M')}.xlsx")
+            write_to_excel(results, output_path)
+            print(f"\n✅ Success! Professional Excel created at: {output_path}")
+    else:
+        print(f"❌ Error: Folder '{TEXTRACT_DIR}' missing.")
