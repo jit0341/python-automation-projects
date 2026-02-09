@@ -1,30 +1,19 @@
 import re
 
-def extract_gstins(lines):
+def extract_gstins(lines_with_geo):
     gst_re = r"\b\d{2}[A-Z]{5}\d{4}[A-Z]{1}[A-Z\d]{1}Z[A-Z\d]\b"
-    gsteins_found = []
-
-    for i, item in enumerate(lines):
-        text = item.get("text", "").upper()
-        match = re.search(gst_re, text)
-        if match:
-            gsteins_found.append({"gst": match.group(0), "index": i})
+    all_found = []
+    for i, line in enumerate(lines_with_geo):
+        m = re.search(gst_re, line['text'].upper())
+        if m:
+            all_found.append({"gst": m.group(0), "top": line['geometry']['BoundingBox']['Top'], "text": line['text']})
 
     res = {"supplier_gstin": "Not Found", "buyer_gstin": "Not Found"}
-
-    if len(gsteins_found) >= 1:
-        # जो सबसे पहले मिला वो Supplier
-        res["supplier_gstin"] = gsteins_found[0]["gst"]
-    
-    if len(gsteins_found) >= 2:
-        # जो बाद में मिला वो Buyer
-        res["buyer_gstin"] = gsteins_found[1]["gst"]
-    elif len(gsteins_found) == 1:
-        # अगर सिर्फ एक ही मिला, तो चेक करें कि कहीं वो 'Bill To' के नीचे तो नहीं?
-        idx = gsteins_found[0]["index"]
-        context = " ".join([l.get("text", "").lower() for l in lines[max(0, idx-5):idx]])
-        if any(k in context for k in ["bill to", "buyer", "consignee"]):
-            res["buyer_gstin"] = gsteins_found[0]["gst"]
-            res["supplier_gstin"] = "Not Found"
-
+    if all_found:
+        # टॉप वाली सप्लायर, बॉटम वाली बायर
+        sorted_gst = sorted(all_found, key=lambda x: x['top'])
+        res["supplier_gstin"] = sorted_gst[0]["gst"]
+        if len(sorted_gst) > 1:
+            res["buyer_gstin"] = sorted_gst[-1]["gst"]
+            
     return res

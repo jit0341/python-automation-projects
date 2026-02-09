@@ -2,41 +2,47 @@ import re
 
 def extract_inventories_advanced(blocks):
     inventory_rows = []
-    # सिर्फ उन ब्लॉक्स को लें जिनमें टेक्स्ट है
     lines = [b for b in blocks if b['BlockType'] == 'LINE']
-    
-    # 1. टेबल का एरिया पहचानें (Description से Total के बीच)
+    if not lines: return []
+
+    rows = {}
+    for b in lines:
+        t = b['Geometry']['BoundingBox']['Top']
+        found = False
+        for k in rows.keys():
+            if abs(k - t) < 0.012: # थोड़ी टॉलरेंस बढ़ाई गई है
+                rows[k].append(b)
+                found = True
+                break
+        if not found: rows[t] = [b]
+
     table_started = False
-    for i, line in enumerate(lines):
-        text = line.get("Text", "").lower()
-        
-        # अगर अमाउंट और रेट वाले कीवर्ड्स दिखें तो टेबल शुरू
-        if any(k in text for k in ["qty", "rate", "amount", "description"]):
+    for t in sorted(rows.keys()):
+        parts = sorted(rows[t], key=lambda x: x['Geometry']['BoundingBox']['Left'])
+        row_text = " ".join([p['Text'] for p in parts])
+        low = row_text.lower()
+
+        # हेडर पहचानना
+        if any(k in low for k in ["description", "qty", "rate", "amount"]):
             table_started = True
             continue
-            
+        
         if table_started:
-            # अगर 'Total' या 'GST' आ जाए तो टेबल खत्म
-            if any(k in text for k in ["total", "subtotal", "gst payable"]):
-                break
-                
-            # Regex: अमाउंट या संख्या ढूंढें
-            nums = re.findall(r"\d+(?:,\d{3})*(?:\.\d{2})?", text)
+            if any(k in low for k in ["total", "amount in words", "bank"]): break
             
-            if len(nums) >= 1:
-                # डिस्क्रिप्शन: लाइन का शुरुआती हिस्सा
-                desc = re.split(r'\d', line.get("Text", ""), 1)[0].strip()
-                
-                # अगर डिस्क्रिप्शन बहुत छोटा है, तो शायद यह टेबल की हेडर लाइन है
-                if len(desc) < 2: continue 
-
+            # कॉलम आधारित एक्सट्रैक्शन
+            item_desc = " ".join([p['Text'] for p in parts if p['Geometry']['BoundingBox']['Left'] < 0.45])
+            # नंबर्स को ढूंढें और क्लीन करें (करेंसी सिंबल हटाएं)
+            nums = re.findall(r"(\d+(?:,\d{3})*(?:\.\d{2,3})?)", row_text.replace('₹', '').replace('Rs', ''))
+            
+            if len(item_desc) > 2 and len(nums) >= 1:
                 inventory_rows.append({
-                    "item": desc,
-                    "qty": nums[-3] if len(nums) >= 3 else "1",
+                    "item": item_desc.strip(),
+                    # अगर 3 नंबर हैं तो (Qty, Rate, Amount), 2 हैं तो (Rate, Amount), 1 है तो सिर्फ Amount
+                    "qty": nums[0] if len(nums) >= 3 else "1",
                     "rate": nums[-2] if len(nums) >= 2 else nums[-1],
-                    "tax_rate": "18%",
-                    "tax_amount": "{:.2f}".format(float(nums[-1].replace(",","")) * 0.18) if nums else "0.00",
+                    "tax_rate": "GST",
+                    "tax_amount": "0.00", # इसे आप GST कैलकुलेशन से भर सकते हैं
                     "amount": nums[-1]
                 })
-
     return inventory_rows

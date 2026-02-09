@@ -61,8 +61,11 @@ def process_invoice(json_path):
     kv_data = extract_kv_pairs(blocks)
     
     # 2. LINE ब्लॉक्स निकालें (Regex extractors के लिए)
-    lines = [{"text": b.get("Text", ""), "confidence": b.get("Confidence", 0)} 
-             for b in blocks if b.get("BlockType") == "LINE"]
+    lines = [{
+    "text": b.get("Text", ""), 
+    "confidence": b.get("Confidence", 0),
+    "geometry": b.get("Geometry", {}) # यह लाइन ज़रूरी है
+}   for b in blocks if b.get("BlockType") == "LINE"]
     
     # --- DATA EXTRACTION LOGIC ---
     

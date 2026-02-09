@@ -1,26 +1,28 @@
 import re
 
-def extract_names(lines):
+def extract_names(lines_with_geo):
     buyer, supplier = "Not Found", "Not Found"
-    
-    # 1. Supplier: पहली 5 लाइन में सबसे बड़ा और बोल्ड टेक्स्ट (इग्नोर 'Invoice')
-    for i, item in enumerate(lines[:5]):
-        text = item.get("text", "").strip()
-        if len(text) > 5 and not re.search(r"(?i)invoice|tax|bill|cash", text):
-            supplier = text
+    # सख्त फिल्टर लिस्ट
+    noise_keywords = ["invoice", "tax", "original", "copy", "date", "dated", "no:", "num", "gstin"]
+
+    # Supplier: टॉप 10% एरिया में
+    for line in lines_with_geo[:7]:
+        t = line['text'].strip()
+        if len(t) > 3 and not any(k in t.lower() for k in noise_keywords) and not re.search(r"\d{2}[A-Z]{5}", t.upper()):
+            supplier = t
             break
 
-    # 2. Buyer: 'Bill To' के नीचे की सटीक लाइन
-    for i, item in enumerate(lines):
-        text = item.get("text", "").lower()
-        if any(k in text for k in ["bill to", "buyer", "consignee"]):
-            # कीवर्ड के बाद वाली 3 लाइनों में ढूंढें
-            for offset in range(1, 4):
-                if i + offset < len(lines):
-                    name_candidate = lines[i+offset].get("text", "").strip()
-                    # नाम में GSTIN या Date नहीं होनी चाहिए
-                    if len(name_candidate) > 3 and not re.search(r"\d{2}[A-Z]{5}|\d{2}[/-]\d{2}", name_candidate):
-                        buyer = name_candidate
+    # Buyer: "Bill to" के नीचे 1-3 लाइन के भीतर
+    for i, line in enumerate(lines_with_geo):
+        if "bill to" in line['text'].lower() or "buyer" in line['text'].lower():
+            l_box = line['geometry']['BoundingBox']
+            for next_line in lines_with_geo[i+1:i+5]:
+                n_box = next_line['geometry']['BoundingBox']
+                # एलाइनमेंट चेक (Left margin < 5% का अंतर)
+                if abs(n_box['Left'] - l_box['Left']) < 0.05:
+                    candidate = next_line['text'].strip()
+                    if len(candidate) > 2 and not any(k in candidate.lower() for k in noise_keywords):
+                        buyer = candidate
                         break
             if buyer != "Not Found": break
             
